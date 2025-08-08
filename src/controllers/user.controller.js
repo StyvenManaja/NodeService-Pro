@@ -19,7 +19,7 @@ const createUser = async (req, res) => {
         const refreshToken = tokenGenerator.generateRefreshToken(user._id);
 
         // Envoi des tokens dans les cookies
-        res.cookie('token', accessToken, {
+        res.cookie('accessToken', accessToken, {
             httpOnly: true, secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 7*24*60*60*1000
@@ -56,7 +56,7 @@ const connectUser = async (req, res) => {
             const refreshToken = tokenGenerator.generateRefreshToken(user._id);
 
             // Envoi des tokens dans les cookies
-            res.cookie('token', accessToken, {
+            res.cookie('accessToken', accessToken, {
                 httpOnly: true, secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict', maxAge: 7*24*60*60*1000
             });
@@ -94,5 +94,34 @@ const getUserById = async (req, res) => {
     }
 };
 
+// Controller pour deconnecter un utilisateur
+const disconnectUser = (req, res) => {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    res.json({ message: 'Déconnexion réussie' });
+};
+
+// Controller pour rafraîchir le token
+const refreshToken = (req, res) => {
+    // Logique pour rafraîchir le token
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) {
+        return res.status(401).json({ error: 'Token manquant' });
+    }
+    // Vérification et génération d'un nouveau token
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+        if (err) {
+            return res.status(401).json({ error: 'Token invalide' });
+        }
+        const newToken = tokenGenerator.generateAccessToken({ id: user.id });
+        res.cookie('accessToken', newToken, {
+            httpOnly: true, secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7*24*60*60*1000
+        });
+        res.json({ message: 'Token rafraîchi avec succès' });
+    });
+};
+
 // Export des contrôleurs pour utilisation dans les routes
-module.exports = { createUser, connectUser, getUserById };
+module.exports = { createUser, connectUser, getUserById, disconnectUser, refreshToken };
