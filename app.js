@@ -13,6 +13,7 @@ const app = express();
 // Importation des routes
 const userRoute = require('./src/routes/user.route');
 const customerRoute = require('./src/routes/customer.route');
+const serviceRoute = require('./src/routes/service.route');
 
 
 // Middleware pour parser le corps des requêtes en JSON
@@ -24,6 +25,7 @@ app.use(cookieParser());
 // Définition du préfixe pour toutes les routes
 app.use('/api/users', userRoute);
 app.use('/api/customers', customerRoute);
+app.use('/api/services', serviceRoute);
 
 // Route de test pour vérifier que le serveur fonctionne
 app.get('/', (req, res) => {
