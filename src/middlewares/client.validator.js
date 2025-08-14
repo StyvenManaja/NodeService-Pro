@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 // Schéma de validation pour la création d'utilisateur
-const createCustomerSchema = Joi.object({
+const createClientSchema = Joi.object({
     name: Joi.string().min(2).max(100).required(),
     company: Joi.string().min(2).max(100).required(),
     email: Joi.string().email().required(),
@@ -9,7 +9,7 @@ const createCustomerSchema = Joi.object({
 });
 
 // Schéma de validation pour la mise à jour d'utilisateur
-const updateCustomerSchema = Joi.object({
+const updateClientSchema = Joi.object({
     name: Joi.string().min(2).max(100).optional(),
     company: Joi.string().min(2).max(100).optional(),
     email: Joi.string().email().optional(),
@@ -31,6 +31,6 @@ const validate = (schema) => (req, res, next) => {
 
 // Export des middlewares spécifique
 module.exports = {
-    validateCreateCustomer: validate(createCustomerSchema),
-    validateUpdateCustomer: validate(updateCustomerSchema)
+    validateCreateClient: validate(createClientSchema),
+    validateUpdateClient: validate(updateClientSchema)
 };

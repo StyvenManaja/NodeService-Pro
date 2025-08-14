@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Définition du schéma client avec validation et contraintes
-const customerSchema = new mongoose.Schema({
+const clientSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -31,6 +31,6 @@ const customerSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Création du modèle client
-const Customer = mongoose.model('Customer', customerSchema);
+const Client = mongoose.model('Client', clientSchema);
 
-module.exports = Customer;
+module.exports = Client;

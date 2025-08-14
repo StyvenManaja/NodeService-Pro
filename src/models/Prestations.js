@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-// Schéma pour les préstations
-const serviceSchema = new mongoose.Schema({
+// Schéma pour les prestations
+const prestationSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -23,6 +23,6 @@ const serviceSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Création du modèle de prestation
-const Service = mongoose.model('Service', serviceSchema);
+const Prestation = mongoose.model('Prestation', prestationSchema);
 
-module.exports = Service;
+module.exports = Prestation;
