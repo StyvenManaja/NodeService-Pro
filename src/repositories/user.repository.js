@@ -6,8 +6,7 @@ const User = require('../models/User');
 // Gère les erreurs de validation et les doublons
 const createUser = async (userData) => {
     try {
-        const user = await User.create(userData);
-        return user;
+        return await User.create(userData);
     } catch (error) {
         // Gestion des doublons MongoDB (code 11000)
         if (error.code === 11000) {
