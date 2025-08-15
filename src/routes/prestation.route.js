@@ -1,7 +1,7 @@
 const express = require('express');
 const prestationController = require('../controllers/prestation.controller');
 const authenticateUser = require('../middlewares/authentication');
-const serviceValidator = require('../middlewares/service.validator');
+const prestationValidator = require('../middlewares/prestation.validator');
 
 const router = express.Router();
 

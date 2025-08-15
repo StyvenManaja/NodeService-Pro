@@ -9,7 +9,6 @@ const QuoteSchema = new mongoose.Schema({
     }],
     totalAmount: { type: Number, required: true },
     validityPeriod: { type: Number, default: 30 }, // en jours
-    pdfPath: { type: String },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -2,10 +2,17 @@ const Joi = require('joi');
 
 // Schema de validation pour la création d'un devis
 const createQuoteSchema = Joi.object({
-    clientId: Joi.string().required(),
-    prestationId: Joi.string().required(),
-    amount: Joi.number().min(0).required(),
-    status: Joi.string().valid('pending', 'accepted', 'rejected').required()
+    client: Joi.string().required(),
+    prestations: Joi.array().items(
+        Joi.alternatives().try(
+            Joi.object({
+                prestation: Joi.string().required(),
+                quantity: Joi.number().min(1).default(1)
+            }),
+            Joi.string() // Permet aussi un ID simple
+        )
+    ).required(),
+    validityPeriod: Joi.number().min(1).default(30)
 });
 
 // Middleware de validation

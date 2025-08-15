@@ -1,4 +1,4 @@
-const Quote = require('../models/quote.model');
+const Quote = require('../models/Quotes');
 
 // Crée un devis
 const createQuote = async (quoteData) => {
