@@ -1,4 +1,4 @@
-const quoteRepository = require('../repositories/quote.repository');
+const devisRepository = require('../repositories/devis.repository');
 const PDFGenerator = require('../utils/pdf.generator');
 const Prestation = require('../models/Prestations');
 
@@ -6,10 +6,10 @@ const Prestation = require('../models/Prestations');
 const fs = require('fs');
 const path = require('path');
 
-const createQuote = async (quoteData) => {
+const createDevis = async (devisData) => {
     try {
         // On récupère les prestations et calcule le total
-        let prestationsInput = quoteData.prestations;
+        let prestationsInput = devisData.prestations;
         // Si tableau d'IDs, transformer en objets { prestation, quantity }
         if (Array.isArray(prestationsInput) && prestationsInput.length > 0 && typeof prestationsInput[0] === 'string') {
             prestationsInput = prestationsInput.map(id => ({ prestation: id, quantity: 1 }));
@@ -32,35 +32,35 @@ const createQuote = async (quoteData) => {
         });
 
         // Créer le devis avec le total calculé
-        const quoteToCreate = {
-            ...quoteData,
+        const devisToCreate = {
+            ...devisData,
             prestations: prestationsFinal,
             totalAmount
         };
 
-        let quote = await quoteRepository.createQuote(quoteToCreate);
-        if(quote) {
+        let devis = await devisRepository.createDevis(devisToCreate);
+        if(devis) {
             // Population des données client et prestations
-            quote = await quote.populate('client');
-            quote = await quote.populate('prestations.prestation');
+            devis = await devis.populate('client');
+            devis = await devis.populate('prestations.prestation');
 
             // Préparation des données pour le PDF
             const devisData = {
                 client: {
-                    name: quote.client.name,
-                    email: quote.client.email,
-                    company: quote.client.company,
-                    phone: quote.client.phone
+                    name: devis.client.name,
+                    email: devis.client.email,
+                    company: devis.client.company,
+                    phone: devis.client.phone
                 },
-                prestations: quote.prestations.map(p => ({
+                prestations: devis.prestations.map(p => ({
                     name: p.prestation.name,
                     description: p.prestation.description,
                     price: p.prestation.price,
                     quantity: p.quantity
                 })),
-                totalAmount: quote.totalAmount,
-                validityPeriod: quote.validityPeriod,
-                date: quote.createdAt
+                totalAmount: devis.totalAmount,
+                validityPeriod: devis.validityPeriod,
+                date: devis.createdAt
             };
 
             // Vérifie que le dossier devis existe
@@ -73,7 +73,7 @@ const createQuote = async (quoteData) => {
             } catch (pdfError) {
                 console.error('Erreur lors de la génération du PDF:', pdfError);
             }
-            return quote;
+            return devis;
         }
         return null;
     } catch (error) {
@@ -82,6 +82,17 @@ const createQuote = async (quoteData) => {
     }
 };
 
+// Récuperer la liste de tous les devis
+const getAllDevis = async () => {
+    try {
+        return await devisRepository.getAllDevis();
+    } catch (error) {
+        console.error('Erreur lors de la récupération des devis:', error);
+        throw new Error('Error fetching quotes');
+    }
+}
+
 module.exports = {
-    createQuote
+    createDevis,
+    getAllDevis
 };

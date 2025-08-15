@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Schema mongoose pour les devis
-const QuoteSchema = new mongoose.Schema({
+const devisSchema = new mongoose.Schema({
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     prestations: [{
         prestation: { type: mongoose.Schema.Types.ObjectId, ref: 'Prestation', required: true },
@@ -12,4 +12,4 @@ const QuoteSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Quote', QuoteSchema);
+module.exports = mongoose.model('Devis', devisSchema);

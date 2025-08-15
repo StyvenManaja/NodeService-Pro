@@ -14,7 +14,8 @@ const app = express();
 const userRoute = require('./src/routes/user.route');
 const clientRoute = require('./src/routes/client.route');
 const prestationRoute = require('./src/routes/prestation.route');
-const quoteRoute = require('./src/routes/quote.route');
+const devisRoute = require('./src/routes/devis.route');
+const invoiceRoute = require('./src/routes/invoice.route');
 
 
 // Middleware pour parser le corps des requêtes en JSON
@@ -27,7 +28,8 @@ app.use(cookieParser());
 app.use('/api/users', userRoute);
 app.use('/api/clients', clientRoute);
 app.use('/api/prestations', prestationRoute);
-app.use('/api/quotes', quoteRoute);
+app.use('/api/devis', devisRoute);
+app.use('/api/invoices', invoiceRoute);
 
 // Route de test pour vérifier que le serveur fonctionne
 app.get('/', (req, res) => {

@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 // Schema de validation pour la création d'un devis
-const createQuoteSchema = Joi.object({
+const createDevisSchema = Joi.object({
     client: Joi.string().required(),
     prestations: Joi.array().items(
         Joi.alternatives().try(
@@ -16,8 +16,8 @@ const createQuoteSchema = Joi.object({
 });
 
 // Middleware de validation
-const validateCreateQuote = (req, res, next) => {
-    const { error } = createQuoteSchema.validate(req.body);
+const validateCreateDevis = (req, res, next) => {
+    const { error } = createDevisSchema.validate(req.body);
     if (error) {
         return res.status(400).json({ error: error.details[0].message });
     }
@@ -25,5 +25,5 @@ const validateCreateQuote = (req, res, next) => {
 };
 
 module.exports = {
-    validateCreateQuote
+    validateCreateDevis
 };
