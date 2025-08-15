@@ -1,5 +1,6 @@
 const invoiceRepository = require('../repositories/invoice.repository');
 const PDFGenerator = require('../utils/pdf.generator');
+const mailSender = require('../utils/mail.sender');
 
 const fs = require('fs');
 const path = require('path');
@@ -46,6 +47,7 @@ const createInvoice = async (devisId) => {
             // Génération du PDF
             try {
                 await PDFGenerator.createInvoice(invoiceData, path.join(invoicesDir, `invoice-${invoice._id}.pdf`));
+                await mailSender.sendMailWithAttachment(devis.client.email, devis.id, 'invoice');
             } catch (pdfError) {
                 console.error('Erreur lors de la génération du PDF:', pdfError);
             }

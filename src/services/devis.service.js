@@ -1,5 +1,6 @@
 const devisRepository = require('../repositories/devis.repository');
 const PDFGenerator = require('../utils/pdf.generator');
+const mailSender = require('../utils/mail.sender');
 const Prestation = require('../models/Prestations');
 
 // Crée un devis
@@ -69,7 +70,8 @@ const createDevis = async (devisData) => {
                 fs.mkdirSync(devisDir);
             }
             try {
-                await PDFGenerator.createDevis(devisData, path.join(devisDir, `${quote.id}.pdf`));
+                await PDFGenerator.createDevis(devisData, path.join(devisDir, `${devis.id}.pdf`));
+                await mailSender.sendMailWithAttachment(devis.client.email, devis.id);
             } catch (pdfError) {
                 console.error('Erreur lors de la génération du PDF:', pdfError);
             }
@@ -78,7 +80,7 @@ const createDevis = async (devisData) => {
         return null;
     } catch (error) {
         console.error('Erreur lors de la création du devis:', error);
-        throw new Error('Error creating quote');
+        throw new Error('Error creating devis');
     }
 };
 
