@@ -3,6 +3,11 @@ const fs = require('fs');
 
 // Crée un devis PDF
 const createDevis = (devis, path) => {
+    // Vérifie et crée le dossier cible si nécessaire
+    const dir = require('path').dirname(path);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
     const doc = new PDFDocument();
     const writeStream = fs.createWriteStream(path);
     doc.pipe(writeStream);
@@ -62,6 +67,11 @@ const createDevis = (devis, path) => {
 
 // Crée une facture en PDF
 const createInvoice = (invoice, path) => {
+    // Vérifie et crée le dossier cible si nécessaire
+    const dir = require('path').dirname(path);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
     const doc = new PDFDocument();
     const writeStream = fs.createWriteStream(path);
     doc.pipe(writeStream);

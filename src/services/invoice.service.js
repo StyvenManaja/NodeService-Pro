@@ -46,8 +46,9 @@ const createInvoice = async (devisId) => {
 
             // Génération du PDF
             try {
-                await PDFGenerator.createInvoice(invoiceData, path.join(invoicesDir, `invoice-${invoice._id}.pdf`));
-                await mailSender.sendMailWithAttachment(devis.client.email, devis.id, 'invoice');
+                const pdfFileName = `invoice-${invoice._id}`;
+                await PDFGenerator.createInvoice(invoiceData, path.join(invoicesDir, `${pdfFileName}.pdf`));
+                await mailSender.sendMailWithAttachment(devis.client.email, pdfFileName, 'invoice');
             } catch (pdfError) {
                 console.error('Erreur lors de la génération du PDF:', pdfError);
             }
