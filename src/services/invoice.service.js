@@ -6,9 +6,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Crée une facture à partir d'un devis
-const createInvoice = async (devisId) => {
+const createInvoice = async (devisId, dueDate) => {
     try {
-        const invoice = await invoiceRepository.createInvoice(devisId);
+        const invoice = await invoiceRepository.createInvoice(devisId, dueDate);
         if(invoice) {
             // Peupler le devis, puis le client et les prestations
             await invoice.populate({
@@ -71,7 +71,29 @@ const getAllInvoices = async () => {
     }
 };
 
+// Payer une facture
+const payInvoice = async (invoiceId) => {
+    try {
+        const invoice = await invoiceRepository.payInvoice(invoiceId);
+        if(invoice) {
+            await invoice.populate({
+                path: 'devis',
+                populate: [
+                    { path: 'client' }
+                ]
+            });
+            await mailSender.sendPaymentConfirmationEmail(invoice.devis.client.email, `invoice-${invoice._id}`);
+            return invoice;
+        }
+        return null;
+    } catch (error) {
+        console.error('Erreur lors du paiement de la facture:', error);
+        throw new Error('Error paying invoice');
+    }
+};
+
 module.exports = {
     createInvoice,
-    getAllInvoices
+    getAllInvoices,
+    payInvoice
 };

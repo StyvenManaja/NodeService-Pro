@@ -5,6 +5,9 @@ require('dotenv').config();
 // Initialisation de la connexion à la base de données MongoDB
 require('./src/config/db');
 
+// Lance le scheduler
+require('./src/config/reminder.cron');
+
 
 const express = require('express');
 const cookieParser = require('cookie-parser'); // Pour parser les cookies

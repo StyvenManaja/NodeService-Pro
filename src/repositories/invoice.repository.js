@@ -1,9 +1,9 @@
 const Invoice = require('../models/Invoices');
 
 // Crée une facture
-const createInvoice = async (devisId) => {
+const createInvoice = async (devisId, dueDate) => {
     try {
-        const invoice = new Invoice({ devis: devisId });
+        const invoice = new Invoice({ devis: devisId, dueDate });
         await invoice.save();
         return invoice;
     } catch (error) {
@@ -22,7 +22,19 @@ const getAllInvoices = async () => {
     }
 };
 
+// Payer une facture
+const payInvoice = async (invoiceId) => {
+    try {
+        const paid = await Invoice.findByIdAndUpdate(invoiceId, { status: 'paid' }, { new: true });
+        return paid;
+    } catch (error) {
+        console.error('Erreur lors du paiement de la facture:', error);
+        throw new Error('Error paying invoice');
+    }
+};
+
 module.exports = {
     createInvoice,
-    getAllInvoices
+    getAllInvoices,
+    payInvoice
 };

@@ -3,8 +3,9 @@ const invoiceService = require('../services/invoice.service');
 // Crée une facture à partir d'un devis
 const createInvoice = async (req, res) => {
     const { devisId } = req.params;
+    const { dueDate } = req.body;
     try {
-        const invoice = await invoiceService.createInvoice(devisId);
+        const invoice = await invoiceService.createInvoice(devisId, dueDate);
         if(!invoice) {
             return res.status(400).json({ error: 'Erreur lors de la création de la facture.' });
         }
@@ -27,7 +28,22 @@ const getAllInvoices = async (req, res) => {
     }
 }
 
+// Payer une facture
+const payInvoice = async (req, res) => {
+    const { invoiceId } = req.params;
+    try {
+        const invoice = await invoiceService.payInvoice(invoiceId);
+        if(!invoice) {
+            return res.status(400).json({ error: 'Erreur lors du paiement de la facture.' });
+        }
+        return res.status(200).json(invoice);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
+
 module.exports = {
     createInvoice,
-    getAllInvoices
+    getAllInvoices,
+    payInvoice
 };

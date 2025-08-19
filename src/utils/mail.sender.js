@@ -42,4 +42,70 @@ const sendMailWithAttachment = async (clientsMail, pdfName, type = 'devis') => {
     await transporter.sendMail(mailOption);
 };
 
-module.exports = { sendMailWithAttachment };
+// Fonction pour envoyer un mail de relance
+const sendReminderEmail = async (clientsMail, pdfName, type = 'invoice') => {
+    const transporter = nodemailer.createTransport({
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.BREVO_USER,
+            pass: process.env.BREVO_PASS
+        }
+    });
+
+    let subject, text, folder;
+    subject = 'Rappel : Votre facture';
+    text = 'Bonjour, ceci est un rappel concernant votre facture.';
+    folder = 'invoices';
+
+    const mailOption = {
+        from: 'ranaivoson@styven-manaja.digital',
+        to: `${clientsMail}`,
+        subject,
+        text,
+        attachments: [
+            {
+                filename: `${pdfName}.pdf`,
+                path: `./${folder}/${pdfName}.pdf`
+            }
+        ]
+    };
+
+    // envoi du mail
+    await transporter.sendMail(mailOption);
+};
+
+// Fonction pour envoyer un mail après un paiement
+const sendPaymentConfirmationEmail = async (clientsMail, pdfName) => {
+    const transporter = nodemailer.createTransport({
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.BREVO_USER,
+            pass: process.env.BREVO_PASS
+        }
+    });
+
+    const subject = 'Confirmation de paiement';
+    const text = 'Bonjour, votre paiement a bien été reçu.';
+
+    const mailOption = {
+        from: 'ranaivoson@styven-manaja.digital',
+        to: `${clientsMail}`,
+        subject,
+        text,
+        attachments: [
+            {
+                filename: `${pdfName}.pdf`,
+                path: `./invoices/${pdfName}.pdf`
+            }
+        ]
+    };
+
+    // envoi du mail
+    await transporter.sendMail(mailOption);
+};
+
+module.exports = { sendMailWithAttachment, sendReminderEmail, sendPaymentConfirmationEmail };
