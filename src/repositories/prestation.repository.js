@@ -16,36 +16,36 @@ const createPrestation = async (prestationData) => {
 };
 
 // Récupération d'une prestation par ID
-const getPrestationById = async (prestationId) => {
+const getPrestationById = async (userId, prestationId) => {
     try {
-        return await Prestation.findById(prestationId);
+        return await Prestation.findOne({ user: userId, _id: prestationId });
     } catch (error) {
         throw new Error('Error fetching prestation: ' + error.message);
     }
 };
 
 // Récupération de la liste de toutes les prestations
-const getAllPrestations = async () => {
+const getAllPrestations = async (userId) => {
     try {
-        return await Prestation.find();
+        return await Prestation.find({ user: userId });
     } catch (error) {
         throw new Error('Error fetching prestations: ' + error.message);
     }
 };
 
 // Mise à jour d'une prestation
-const updatePrestation = async (prestationId, prestationData) => {
+const updatePrestation = async (userId, prestationId, prestationData) => {
     try {
-        return await Prestation.findByIdAndUpdate(prestationId, prestationData, { new: true });
+        return await Prestation.findOneAndUpdate({user: userId, _id: prestationId}, prestationData, { new: true });
     } catch (error) {
         throw new Error('Error updating prestation: ' + error.message);
     }
 };
 
 // Suppression d'une prestation
-const deletePrestation = async (prestationId) => {
+const deletePrestation = async (userId, prestationId) => {
     try {
-        return await Prestation.findByIdAndDelete(prestationId);
+        return await Prestation.findOneAndDelete({ user: userId, _id: prestationId});
     } catch (error) {
         throw new Error('Error deleting prestation: ' + error.message);
     }

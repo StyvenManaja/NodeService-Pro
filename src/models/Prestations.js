@@ -2,10 +2,12 @@ const mongoose = require('mongoose');
 
 // Schéma pour les prestations
 const prestationSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true
+  },
   name: {
     type: String,
     required: true,
-    unique: true,
     minlength: 2,
     maxlength: 100
   },
@@ -22,7 +24,8 @@ const prestationSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Création du modèle de prestation
-const Prestation = mongoose.model('Prestation', prestationSchema);
+// Unicité par utilisateur et nom
+prestationSchema.index({ user: 1, name: 1 }, { unique: true });
 
+const Prestation = mongoose.model('Prestation', prestationSchema);
 module.exports = Prestation;

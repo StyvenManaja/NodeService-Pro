@@ -4,11 +4,12 @@ const devisService = require('../services/devis.service');
 const createDevis = async (req, res) => {
     try {
         let { prestations, ...rest } = req.body;
+        const userId = req.userId; // Récupération de l'ID utilisateur depuis le token JWT
         // Si prestations est un tableau de chaînes, transformer en objets
         if (Array.isArray(prestations) && prestations.length > 0 && typeof prestations[0] === 'string') {
             prestations = prestations.map(id => ({ prestation: id, quantity: 1 }));
         }
-        const devis = await devisService.createDevis({ ...rest, prestations });
+        const devis = await devisService.createDevis({ ...rest, prestations, user: userId });
         if(!devis) {
             return res.status(400).json({ message: 'Error creating devis' });
         }
@@ -20,8 +21,9 @@ const createDevis = async (req, res) => {
 
 // Récuperation de la liste de tous les devis
 const getAllDevis = async (req, res) => {
+    const userId = req.userId; // Récupération de l'ID utilisateur depuis le token JWT
     try {
-        const devis = await devisService.getAllDevis();
+        const devis = await devisService.getAllDevis(userId);
         if(!devis || devis.length === 0) {
             return res.status(404).json({ message: 'No devis found' });
         }

@@ -3,12 +3,12 @@ const Prestations = require('../models/Prestations');
 const Invoices = require('../models/Invoices');
 const Devis = require('../models/Devis');
 
-const getDashboardData = async () => {
+const getDashboardData = async (userId) => {
     try {
-        const clients = await Clients.countDocuments();
-        const prestations = await Prestations.countDocuments();
-        const invoices = await Invoices.find().populate('devis');
-        const devis = await Devis.countDocuments();
+        const clients = await Clients.countDocuments({ user: userId });
+        const prestations = await Prestations.countDocuments({ user: userId });
+        const invoices = await Invoices.find({ user: userId }).populate('devis');
+        const devis = await Devis.countDocuments({ user: userId });
 
         return {
             clients,

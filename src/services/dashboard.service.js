@@ -1,8 +1,8 @@
 const dashboardRepository = require('../repositories/dashboard.repository');
 
-const getDashboardData = async () => {
+const getDashboardData = async (userId) => {
     try {
-        const data = await dashboardRepository.getDashboardData();
+        const data = await dashboardRepository.getDashboardData(userId);
 
         if(!data) {
             throw new Error('No data found');

@@ -11,9 +11,9 @@ const createDevis = async (devisData) => {
 };
 
 // Récuperer tous les devis
-const getAllDevis = async () => {
+const getAllDevis = async (userId) => {
     try {
-        return await Devis.find().populate('client').populate('prestations.prestation');
+        return await Devis.find({ user: userId }).populate('client').populate('prestations.prestation');
     } catch (error) {
         throw new Error('Error fetching devis');
     }

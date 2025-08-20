@@ -3,8 +3,9 @@ const clientService = require('../services/client.service');
 // Création d'un client
 const createClient = async (req, res) => {
     const { name, company, email, phone } = req.body;
+    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
     try {
-        const client = await clientService.createClient(name, company, email, phone);
+        const client = await clientService.createClient(userId, name, company, email, phone);
         if(!client) {
             return res.status(400).json({ error: 'Error creating client' });
         }
@@ -18,8 +19,9 @@ const createClient = async (req, res) => {
 
 // Récuperation de la liste de tous les clients
 const getAllClients = async (req, res) => {
+    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
     try {
-        const clients = await clientService.getAllClients();
+        const clients = await clientService.getAllClients(userId);
         if(!clients || clients.length === 0) {
             return res.status(404).json({ error: 'No clients found' });
         }
@@ -32,8 +34,9 @@ const getAllClients = async (req, res) => {
 // Récuperer un client avec son ID
 const getClientById = async (req, res) => {
     const { clientId } = req.params;
+    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
     try {
-        const client = await clientService.getClientById(clientId);
+        const client = await clientService.getClientById(userId, clientId);
         if(!client) {
             return res.status(404).json({ error: 'Client not found' });
         }
@@ -47,8 +50,9 @@ const getClientById = async (req, res) => {
 const updateClient = async (req, res) => {
     const { clientId } = req.params;
     const clientData = req.body;
+    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
     try {
-        const updatedClient = await clientService.updateClient(clientId, clientData);
+        const updatedClient = await clientService.updateClient(userId, clientId, clientData);
         if(!updatedClient) {
             return res.status(404).json({ error: 'Client not found' });
         }
@@ -61,8 +65,9 @@ const updateClient = async (req, res) => {
 // Supprimer un client
 const deleteClient = async (req, res) => {
     const { clientId } = req.params;
+    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
     try {
-        const deletedClient = await clientService.deleteClient(clientId);
+        const deletedClient = await clientService.deleteClient(userId, clientId);
         if(!deletedClient) {
             return res.status(404).json({ error: 'Client not found' });
         }

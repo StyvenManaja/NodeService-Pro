@@ -3,8 +3,9 @@ const prestationService = require('../services/prestation.service');
 // Créer une prestation
 const createPrestation = async (req, res) => {
     const { name, description, price } = req.body;
+    const userId = req.userId;
     try {
-        const newPrestation = await prestationService.createPrestation(name, description, price);
+        const newPrestation = await prestationService.createPrestation(userId, name, description, price);
         if(!newPrestation) {
             return res.status(400).json({ error: 'Error creating prestation' });
         }
@@ -17,8 +18,9 @@ const createPrestation = async (req, res) => {
 // Récuperer une prestation avec son ID
 const getPrestationById = async (req, res) => {
     const { prestationID } = req.params;
+    const userId = req.userId;
     try {
-        const prestation = await prestationService.getPrestationById(prestationID);
+        const prestation = await prestationService.getPrestationById(userId, prestationID);
         if(!prestation) {
             return res.status(404).json({ error: 'Prestation not found' });
         }
@@ -30,8 +32,9 @@ const getPrestationById = async (req, res) => {
 
 // Récuperer la liste de toutes les prestations
 const getAllPrestations = async (req, res) => {
+    const userId = req.userId;
     try {
-        const prestations = await prestationService.getAllPrestations();
+        const prestations = await prestationService.getAllPrestations(userId);
         if(!prestations || prestations.length === 0) {
             return res.status(404).json({ error: 'No prestations found' });
         }
@@ -45,8 +48,9 @@ const getAllPrestations = async (req, res) => {
 const updatePrestation = async (req, res) => {
     const { prestationID } = req.params;
     const prestationData = req.body;
+    const userId = req.userId;
     try {
-        const updatedPrestation = await prestationService.updatePrestation(prestationID, prestationData);
+        const updatedPrestation = await prestationService.updatePrestation(userId, prestationID, prestationData);
         if (!updatedPrestation) {
             return res.status(404).json({ error: 'Prestation not found' });
         }
@@ -59,8 +63,9 @@ const updatePrestation = async (req, res) => {
 // Supprimer une prestation
 const deletePrestation = async (req, res) => {
     const { prestationID } = req.params;
+    const userId = req.userId;
     try {
-        const deletedPrestation = await prestationService.deletePrestation(prestationID);
+        const deletedPrestation = await prestationService.deletePrestation(userId, prestationID);
         if (!deletedPrestation) {
             return res.status(404).json({ error: 'Prestation not found' });
         }

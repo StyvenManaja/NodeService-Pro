@@ -1,9 +1,9 @@
 const Invoice = require('../models/Invoices');
 
 // Crée une facture
-const createInvoice = async (devisId, dueDate) => {
+const createInvoice = async (userId, devisId, dueDate) => {
     try {
-        const invoice = new Invoice({ devis: devisId, dueDate });
+        const invoice = new Invoice({ user: userId, devis: devisId, dueDate });
         await invoice.save();
         return invoice;
     } catch (error) {
@@ -13,9 +13,9 @@ const createInvoice = async (devisId, dueDate) => {
 };
 
 // Récuperer toutes les factures
-const getAllInvoices = async () => {
+const getAllInvoices = async (userId) => {
     try {
-        return await Invoice.find().populate('devis');
+        return await Invoice.find({ user: userId }).populate('devis');
     } catch (error) {
         console.error('Erreur lors de la récupération des factures:', error);
         throw new Error('Error fetching invoices');
@@ -23,9 +23,9 @@ const getAllInvoices = async () => {
 };
 
 // Payer une facture
-const payInvoice = async (invoiceId) => {
+const payInvoice = async (userId, invoiceId) => {
     try {
-        const paid = await Invoice.findByIdAndUpdate(invoiceId, { status: 'paid' }, { new: true });
+        const paid = await Invoice.findOneAndUpdate({ _id: invoiceId, user: userId }, { status: 'paid' }, { new: true });
         return paid;
     } catch (error) {
         console.error('Erreur lors du paiement de la facture:', error);

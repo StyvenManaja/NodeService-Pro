@@ -6,9 +6,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Crée une facture à partir d'un devis
-const createInvoice = async (devisId, dueDate) => {
+const createInvoice = async (userId, devisId, dueDate) => {
     try {
-        const invoice = await invoiceRepository.createInvoice(devisId, dueDate);
+        const invoice = await invoiceRepository.createInvoice(userId, devisId, dueDate);
         if(invoice) {
             // Peupler le devis, puis le client et les prestations
             await invoice.populate({
@@ -62,9 +62,9 @@ const createInvoice = async (devisId, dueDate) => {
 };
 
 // Récuperer toutes les factures
-const getAllInvoices = async () => {
+const getAllInvoices = async (userId) => {
     try {
-        return await invoiceRepository.getAllInvoices();
+        return await invoiceRepository.getAllInvoices(userId);
     } catch (error) {
         console.error('Erreur lors de la récupération des factures:', error);
         throw new Error('Error fetching invoices');
@@ -72,9 +72,9 @@ const getAllInvoices = async () => {
 };
 
 // Payer une facture
-const payInvoice = async (invoiceId) => {
+const payInvoice = async (userId, invoiceId) => {
     try {
-        const invoice = await invoiceRepository.payInvoice(invoiceId);
+        const invoice = await invoiceRepository.payInvoice(userId, invoiceId);
         if(invoice) {
             await invoice.populate({
                 path: 'devis',

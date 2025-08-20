@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 // Schema mongoose pour les devis
 const devisSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     prestations: [{
         prestation: { type: mongoose.Schema.Types.ObjectId, ref: 'Prestation', required: true },

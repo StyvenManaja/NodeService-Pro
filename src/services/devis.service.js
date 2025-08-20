@@ -85,9 +85,9 @@ const createDevis = async (devisData) => {
 };
 
 // Récuperer la liste de tous les devis
-const getAllDevis = async () => {
+const getAllDevis = async (userId) => {
     try {
-        return await devisRepository.getAllDevis();
+        return await devisRepository.getAllDevis(userId);
     } catch (error) {
         console.error('Erreur lors de la récupération des devis:', error);
         throw new Error('Error fetching quotes');
