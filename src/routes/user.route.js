@@ -6,6 +6,7 @@ const userController = require('../controllers/user.controller');
 const userValidator = require('../middlewares/user.validator');
 // Importation du middleware d'authentification
 const authenticateUser = require('../middlewares/authentication');
+const isVerified = require('../middlewares/isVerified');
 
 // Création d'un routeur Express
 const router = express.Router();
@@ -17,7 +18,7 @@ router.post('/create', userValidator.validateCreateUser, userController.createUs
 router.post('/connect', userValidator.validateConnectUser, userController.connectUser);
 
 // Route protégée pour récupérer les données de l'utilisateur connecté
-router.get('/me', authenticateUser, userController.getUserById);
+router.get('/me', authenticateUser, isVerified, userController.getUserById);
 
 // Route pour rafraîchir le token
 router.post('/refresh', userController.refreshToken);

@@ -108,4 +108,30 @@ const sendPaymentConfirmationEmail = async (clientsMail, pdfName) => {
     await transporter.sendMail(mailOption);
 };
 
-module.exports = { sendMailWithAttachment, sendReminderEmail, sendPaymentConfirmationEmail };
+// Fonction pour envoyer un mail de vérification
+const sendVerificationEmail = async (clientsMail, verificationCode) => {
+    const transporter = nodemailer.createTransport({
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.BREVO_USER,
+            pass: process.env.BREVO_PASS
+        }
+    });
+
+    const subject = 'Vérification de votre compte';
+    const text = `Bonjour, voici votre code de vérification : ${verificationCode}`;
+
+    const mailOption = {
+        from: 'ranaivoson@styven-manaja.digital',
+        to: `${clientsMail}`,
+        subject,
+        text
+    };
+
+    // envoi du mail
+    await transporter.sendMail(mailOption);
+};
+
+module.exports = { sendMailWithAttachment, sendReminderEmail, sendPaymentConfirmationEmail, sendVerificationEmail };

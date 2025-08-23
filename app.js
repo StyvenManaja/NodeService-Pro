@@ -20,6 +20,7 @@ const prestationRoute = require('./src/routes/prestation.route');
 const devisRoute = require('./src/routes/devis.route');
 const invoiceRoute = require('./src/routes/invoice.route');
 const dashboardRoute = require('./src/routes/dashboard.route');
+const verificationRoute = require('./src/routes/verification.route');
 
 
 // Middleware pour parser le corps des requêtes en JSON
@@ -35,6 +36,7 @@ app.use('/api/prestations', prestationRoute);
 app.use('/api/devis', devisRoute);
 app.use('/api/invoices', invoiceRoute);
 app.use('/api/dashboard', dashboardRoute);
+app.use('/api/verification', verificationRoute);
 
 // Route de test pour vérifier que le serveur fonctionne
 app.get('/', (req, res) => {
