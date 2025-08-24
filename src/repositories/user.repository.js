@@ -30,10 +30,20 @@ const findUserByEmail = async (email) => {
 // Recherche un utilisateur par son identifiant unique
 const getUserById = async (userId) => {
     try {
-        return await User.findById(userId).select('-password'); // On exclut le mot de passe
+        return await User.findById(userId).select();
     } catch (error) {
         console.error('Error on finding user by id:', error);
         throw new Error('Error on finding user by id');
+    }
+};
+
+// Supprimer un compte
+const deleteAccount = async (userId) => {
+    try {
+        return await User.findByIdAndDelete(userId);
+    } catch (error) {
+        console.error('Error on deleting account:', error);
+        throw new Error('Error on deleting account');
     }
 };
 
@@ -41,5 +51,6 @@ const getUserById = async (userId) => {
 module.exports = {
     createUser,
     findUserByEmail,
-    getUserById
+    getUserById,
+    deleteAccount
 };

@@ -134,4 +134,31 @@ const sendVerificationEmail = async (clientsMail, verificationCode) => {
     await transporter.sendMail(mailOption);
 };
 
-module.exports = { sendMailWithAttachment, sendReminderEmail, sendPaymentConfirmationEmail, sendVerificationEmail };
+// Fonction pour envoyer un lien de réinitialisation de mot de passe
+const sendPasswordResetEmail = async (clientsMail, temporaryToken) => {
+    const transporter = nodemailer.createTransport({
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.BREVO_USER,
+            pass: process.env.BREVO_PASS
+        }
+    });
+
+    const subject = 'Réinitialisation de votre mot de passe';
+    const resetLink = `https://frontend-domain.com/reset-password?token=${temporaryToken}`;
+    const text = `Bonjour, cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`;
+
+    const mailOption = {
+        from: 'ranaivoson@styven-manaja.digital',
+        to: `${clientsMail}`,
+        subject,
+        text
+    };
+
+    // envoi du mail
+    await transporter.sendMail(mailOption);
+};
+
+module.exports = { sendMailWithAttachment, sendReminderEmail, sendPaymentConfirmationEmail, sendVerificationEmail, sendPasswordResetEmail };

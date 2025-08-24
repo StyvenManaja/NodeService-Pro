@@ -13,6 +13,22 @@ const connectUserSchema = Joi.object({
     password: Joi.string().required().min(8).max(100).trim()
 });
 
+// Schema de validation pour le changement d'un mot de passe
+const changePasswordSchema = Joi.object({
+    oldPassword: Joi.string().required().min(8).max(100).trim(),
+    newPassword: Joi.string().required().min(8).max(100).trim()
+});
+
+// Schema de validation pour l'envoi d'email de réinitialisation
+const forgotPasswordSchema = Joi.object({
+    email: Joi.string().required().email().trim()
+});
+
+// Schema de validation pour la réinitialisation du mot de passe
+const resetPasswordSchema = Joi.object({
+    newPassword: Joi.string().required().min(8).max(100).trim()
+});
+
 // Middleware générique pour la validation
 const validate = (schema) => (req, res, next) => {
     const { error } = schema.validate(req.body, { abortEarly: false });
@@ -25,5 +41,8 @@ const validate = (schema) => (req, res, next) => {
 // Export des middleware spécifiques
 module.exports = {
     validateCreateUser: validate(createUserSchema),
-    validateConnectUser: validate(connectUserSchema)
+    validateConnectUser: validate(connectUserSchema),
+    validateChangePassword: validate(changePasswordSchema),
+    validateForgotPassword: validate(forgotPasswordSchema),
+    validateResetPassword: validate(resetPasswordSchema)
 };

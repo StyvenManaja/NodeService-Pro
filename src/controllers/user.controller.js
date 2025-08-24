@@ -123,5 +123,75 @@ const refreshToken = (req, res) => {
     });
 };
 
+// Controller pour changer le mot de pass d'un utilisateur
+const changePassword = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { oldPassword, newPassword } = req.body;
+
+        // Appelle le service pour changer le mot de passe
+        const result = await userService.changePassword(userId, oldPassword, newPassword);
+        if (!result) {
+            return res.status(400).json({ error: 'Error changing password' });
+        }
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        const status = error.message === 'Incorrect old password' ? 400 : 500;
+        res.status(status).json({ error: error.message });
+    }
+};
+
+// Controller pour envoyer un lien de réinitialisation
+const forgotPassword = async(req, res) => {
+    try {
+        const { email } = req.body;
+        const isCodeSent = await userService.sendPasswordResetCode(email);
+        if (isCodeSent) {
+            return res.status(200).json({ message: 'Password reset link sent if email exists' });
+        }
+        return res.status(404).json({ error: 'User not found' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error on resetting password' });
+    }
+};
+
+// Controller pour réinitialiser le mot de passe
+const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.query;
+        const { newPassword } = req.body;
+        jwt.verify(token, process.env.TEMPORARY_TOKEN_SECRET, async (err, decoded) => {
+            if (err) {
+                return res.status(401).json({ error: 'Invalid or expired token' });
+            }
+            const userId = decoded.id;
+            const result = await userService.resetPassword(userId, newPassword);
+            if (!result) {
+                return res.status(400).json({ error: 'Error resetting password' });
+            }
+            res.status(200).json({ message: 'Password reset successfully' });
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error on resetting password' });
+    }
+};
+
+// Controller pour supprimer un compte
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const result = await userService.deleteAccount(userId);
+        if (!result) {
+            return res.status(400).json({ error: 'Error deleting account' });
+        }
+        // Clear cookies upon account deletion
+        res.clearCookie('accessToken');
+        res.clearCookie('refreshToken');
+        res.status(200).json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error on deleting account' });
+    }
+};
+
 // Export des contrôleurs pour utilisation dans les routes
-module.exports = { createUser, connectUser, getUserById, disconnectUser, refreshToken };
+module.exports = { createUser, connectUser, getUserById, disconnectUser, refreshToken, changePassword, forgotPassword, resetPassword, deleteAccount };

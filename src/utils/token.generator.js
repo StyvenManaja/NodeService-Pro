@@ -8,7 +8,12 @@ const generateRefreshToken = (userId) => {
     return jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
 };
 
+const generateTemporaryToken = (userId) => {
+    return jwt.sign({ userId }, process.env.TEMPORARY_TOKEN_SECRET, { expiresIn: '15m' });
+};
+
 module.exports = {
     generateAccessToken,
-    generateRefreshToken
+    generateRefreshToken,
+    generateTemporaryToken
 };
