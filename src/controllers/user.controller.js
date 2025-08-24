@@ -9,8 +9,8 @@ const tokenGenerator = require('../utils/token.generator');
 // Récupère les données du corps de la requête, appelle le service, et gère la réponse
 const createUser = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-        const user = await userService.createUser(username, email, password);
+        const { username, email, password, lastname, firstname } = req.body;
+        const user = await userService.createUser(username, lastname, firstname, email, password);
         if(!user) {
             return res.status(400).json({ error: 'Error on creating user' });
         }
@@ -147,7 +147,7 @@ const forgotPassword = async(req, res) => {
         const { email } = req.body;
         const isCodeSent = await userService.sendPasswordResetCode(email);
         if (isCodeSent) {
-            return res.status(200).json({ message: 'Password reset link sent if email exists' });
+            return res.status(200).json({ message: 'Password reset link sent' });
         }
         return res.status(404).json({ error: 'User not found' });
     } catch (error) {
@@ -164,7 +164,7 @@ const resetPassword = async (req, res) => {
             if (err) {
                 return res.status(401).json({ error: 'Invalid or expired token' });
             }
-            const userId = decoded.id;
+            const userId = decoded.userId;
             const result = await userService.resetPassword(userId, newPassword);
             if (!result) {
                 return res.status(400).json({ error: 'Error resetting password' });

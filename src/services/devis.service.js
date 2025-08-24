@@ -41,12 +41,22 @@ const createDevis = async (devisData) => {
 
         let devis = await devisRepository.createDevis(devisToCreate);
         if(devis) {
-            // Population des données client et prestations
+            // Population des données client, prestations et users
             devis = await devis.populate('client');
             devis = await devis.populate('prestations.prestation');
+            devis = await devis.populate('user');
+
+            // Vérification de l'existence du client
+            if (!devis.client) {
+                throw new Error('Client not found');
+            }
 
             // Préparation des données pour le PDF
             const devisData = {
+                user: {
+                    name: devis.user.lastname,
+                    email: devis.user.email
+                },
                 client: {
                     name: devis.client.name,
                     email: devis.client.email,
@@ -71,7 +81,21 @@ const createDevis = async (devisData) => {
             }
             try {
                 await PDFGenerator.createDevis(devisData, path.join(devisDir, `${devis.id}.pdf`));
-                await mailSender.sendMailWithAttachment(devis.client.email, devis.id);
+                await mailSender.sendMail({
+                    to: devis.client.email,
+                    subject: 'Votre devis',
+                    text: 'Bonjour, voici votre devis en pièce jointe.',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #222;">
+                            <h2 style="color: #007bff;">Votre devis</h2>
+                            <p>Bonjour,</p>
+                            <p>Veuillez trouver votre devis en pièce jointe.</p>
+                            <p style="margin-top:20px;">Merci pour votre confiance.<br>L'équipe Styven Manaja Digital</p>
+                        </div>
+                    `,
+                    attachmentName: devis.id,
+                    attachmentFolder: 'devis'
+                });
             } catch (pdfError) {
                 console.error('Erreur lors de la génération du PDF:', pdfError);
             }

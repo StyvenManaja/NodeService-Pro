@@ -5,10 +5,12 @@ const tokenGenerator = require('../utils/token.generator');
 
 // Service pour créer un nouvel utilisateur
 // Prépare les données et délègue la création au repository
-const createUser = async (username, email, password) => {
+const createUser = async (username, lastname, firstname, email, password) => {
     try {
         const userData = {
             username,
+            lastname,
+            firstname,
             email,
             password
         };
@@ -16,8 +18,14 @@ const createUser = async (username, email, password) => {
         if(user) {
             const code = await verificationRepository.createAVerificationCode(user._id);
             if(code) {
+                const c = code.code;
                 // Envoyer le code de vérification par e-mail
-                await mailSender.sendVerificationEmail(user.email, code);
+                await mailSender.sendMail({
+                    to: user.email,
+                    subject: 'Vérification de votre compte',
+                    templateName: 'verification',
+                    templateVars: { code: c }
+                });
             }
         }
         return user;
@@ -68,9 +76,10 @@ const changePassword = async (userId, oldPassword, newPassword) => {
         if (!isMatch) {
             throw new Error('Incorrect old password');
         }
-        user.password = newPassword;
-        await user.save();
-        return true;
+    user.password = newPassword;
+    user.resetLinkAttempt = 0;
+    await user.save();
+    return true;
     } catch (error) {
         console.error('Error changing password:', error);
         throw new Error('Error changing password');
@@ -84,9 +93,20 @@ const sendPasswordResetCode = async (email) => {
         if (!user) {
             throw new Error('User not found');
         }
+        // Vérifie la tentative de reset par lien
+        if (user.resetLinkAttempt >= 1) {
+            throw new Error('Password reset link already sent. Please use the link or contact support.');
+        }
+        user.resetLinkAttempt += 1;
+        await user.save();
         const temporaryToken = tokenGenerator.generateTemporaryToken(user._id);
         try {
-            await mailSender.sendPasswordResetEmail(user.email, temporaryToken);
+            await mailSender.sendMail({
+                to: user.email,
+                subject: 'Réinitialisation de votre mot de passe',
+                templateName: 'reset',
+                templateVars: { resetLink: `https://frontend-domain.com/reset-password?token=${temporaryToken}` }
+            });
         } catch (error) {
             console.error('Error sending password reset email:', error);
             throw new Error('Error sending password reset email');
@@ -121,7 +141,7 @@ const deleteAccount = async (userId) => {
         if (!user) {
             throw new Error('User not found');
         }
-        await userRepository.deleteUser(userId);
+        await userRepository.deleteAccount(userId);
         return true;
     } catch (error) {
         console.error('Error deleting account:', error);
@@ -136,5 +156,6 @@ module.exports = {
     sendPasswordResetCode,
     getUserById,
     changePassword,
-    resetPassword
+    resetPassword,
+    deleteAccount
 };

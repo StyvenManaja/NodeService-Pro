@@ -3,6 +3,8 @@ const Joi = require('joi');
 // Schema de validation de la création d'un utilisateur
 const createUserSchema = Joi.object({
     username: Joi.string().required().min(6).max(30).trim(),
+    lastname: Joi.string().required().min(2).max(50).trim(),
+    firstname: Joi.string().required().min(2).max(50).trim(),
     email: Joi.string().required().email().trim(),
     password: Joi.string().required().min(8).max(100).trim()
 });

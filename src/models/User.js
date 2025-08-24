@@ -14,6 +14,18 @@ const userSchema = new mongoose.Schema({
         trim: true,     // Supprime les espaces en début/fin
         minlength: 6    // Longueur minimale
     },
+    lastname: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 2
+    },
+    firstname: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 2
+    },
     email: {
         type: String,
         required: true, // Champ obligatoire
@@ -25,6 +37,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true, // Champ obligatoire
         minlength: 8    // Longueur minimale
+    },
+    resetLinkAttempt: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true // Ajoute createdAt et updatedAt automatiquement

@@ -3,7 +3,7 @@ const prestationRepository = require('../repositories/prestation.repository');
 // Création d'une prestation
 const createPrestation = async (userId, name, description, price) => {
     try {
-        const prestationData = { userId, name, description, price };
+        const prestationData = { user: userId, name, description, price };
         return await prestationRepository.createPrestation(prestationData);
     } catch (error) {
         throw new Error('Error creating prestation: ' + error.message);

@@ -10,18 +10,23 @@ const createInvoice = async (userId, devisId, dueDate) => {
     try {
         const invoice = await invoiceRepository.createInvoice(userId, devisId, dueDate);
         if(invoice) {
-            // Peupler le devis, puis le client et les prestations
+            // Peupler le devis, puis le client, les prestations et l'utilisateur
             await invoice.populate({
                 path: 'devis',
                 populate: [
                     { path: 'client' },
-                    { path: 'prestations.prestation' }
+                    { path: 'prestations.prestation' },
+                    { path: 'user' }
                 ]
             });
             const devis = invoice.devis;
 
             // Création des données utiles pour la création de la facture en PDF
             const invoiceData = {
+                user: {
+                    name: devis.user.lastname,
+                    email: devis.user.email
+                },
                 client: {
                     name: devis.client.name,
                     email: devis.client.email,
@@ -48,7 +53,21 @@ const createInvoice = async (userId, devisId, dueDate) => {
             try {
                 const pdfFileName = `invoice-${invoice._id}`;
                 await PDFGenerator.createInvoice(invoiceData, path.join(invoicesDir, `${pdfFileName}.pdf`));
-                await mailSender.sendMailWithAttachment(devis.client.email, pdfFileName, 'invoice');
+                await mailSender.sendMail({
+                    to: devis.client.email,
+                    subject: 'Votre facture',
+                    text: 'Bonjour, voici votre facture en pièce jointe.',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #222;">
+                            <h2 style="color: #007bff;">Votre facture</h2>
+                            <p>Bonjour,</p>
+                            <p>Veuillez trouver votre facture en pièce jointe.</p>
+                            <p style="margin-top:20px;">Merci pour votre confiance.<br>L'équipe Styven Manaja Digital</p>
+                        </div>
+                    `,
+                    attachmentName: pdfFileName,
+                    attachmentFolder: 'invoices'
+                });
             } catch (pdfError) {
                 console.error('Erreur lors de la génération du PDF:', pdfError);
             }
@@ -82,7 +101,21 @@ const payInvoice = async (userId, invoiceId) => {
                     { path: 'client' }
                 ]
             });
-            await mailSender.sendPaymentConfirmationEmail(invoice.devis.client.email, `invoice-${invoice._id}`);
+            await mailSender.sendMail({
+                to: invoice.devis.client.email,
+                subject: 'Confirmation de paiement',
+                text: 'Bonjour, votre paiement a bien été reçu.',
+                html: `
+                    <div style="font-family: Arial, sans-serif; color: #222;">
+                        <h2 style="color: #28a745;">Confirmation de paiement</h2>
+                        <p>Bonjour,</p>
+                        <p>Nous avons bien reçu votre paiement. Merci !</p>
+                        <p style="margin-top:20px;">L'équipe Styven Manaja Digital</p>
+                    </div>
+                `,
+                attachmentName: `invoice-${invoice._id}`,
+                attachmentFolder: 'invoices'
+            });
             return invoice;
         }
         return null;

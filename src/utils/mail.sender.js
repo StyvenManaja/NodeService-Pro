@@ -1,7 +1,23 @@
-const nodemailer = require('nodemailer');
 
-// Fonction générique pour envoyer un mail avec pièce jointe (devis ou facture)
-const sendMailWithAttachment = async (clientsMail, pdfName, type = 'devis') => {
+const nodemailer = require('nodemailer');
+const { loadTemplate } = require('./template.loader');
+
+/**
+ * Fonction générique pour envoyer tous types de mails (devis, facture, relance, vérification, confirmation, reset).
+ * @param {Object} options - Options du mail
+ * @param {string} options.to - Email du destinataire
+ * @param {string} options.subject - Sujet du mail
+ * @param {string} options.text - Texte du mail
+ * @param {string} [options.html] - Contenu HTML du mail (optionnel)
+ * @param {string} [options.attachmentName] - Nom du fichier PDF (sans extension)
+ * @param {string} [options.attachmentFolder] - Dossier du fichier PDF (ex: 'devis', 'invoices')
+ * @param {string} [options.verificationCode] - Code de vérification (optionnel)
+ * @param {string} [options.resetToken] - Token de réinitialisation (optionnel)
+ */
+/**
+ * Ajout du paramètre templateName et templateVars pour centraliser les templates
+ */
+const sendMail = async ({ to, subject, text, html, templateName, templateVars = {}, attachmentName, attachmentFolder, verificationCode, resetToken }) => {
     const transporter = nodemailer.createTransport({
         host: 'smtp-relay.brevo.com',
         port: 587,
@@ -12,153 +28,34 @@ const sendMailWithAttachment = async (clientsMail, pdfName, type = 'devis') => {
         }
     });
 
-    let subject, text, folder;
-    if (type === 'devis') {
-        subject = 'Votre devis';
-        text = 'Bonjour, voici votre devis en pièce jointe.';
-        folder = 'devis';
-    } else if (type === 'invoice') {
-        subject = 'Votre facture';
-        text = 'Bonjour, voici votre facture en pièce jointe.';
-        folder = 'invoices';
+    let mailOptions = {
+        from: process.env.PROD_EMAIL,
+        to,
+        subject
+    };
+    // Si un template est demandé, le charger et injecter les variables
+    if (templateName) {
+        mailOptions.html = loadTemplate(templateName, templateVars);
+    } else if (html) {
+        mailOptions.html = html;
     } else {
-        throw new Error('Type de document non supporté');
+        mailOptions.text = text;
     }
 
-    const mailOption = {
-        from: 'ranaivoson@styven-manaja.digital',
-        to: `${clientsMail}`,
-        subject,
-        text,
-        attachments: [
+    // Ajout pièce jointe si nécessaire
+    if (attachmentName && attachmentFolder) {
+        mailOptions.attachments = [
             {
-                filename: `${pdfName}.pdf`,
-                path: `./${folder}/${pdfName}.pdf`
+                filename: `${attachmentName}.pdf`,
+                path: `./${attachmentFolder}/${attachmentName}.pdf`
             }
-        ]
-    };
+        ];
+    }
 
-    // envoi du mail
-    await transporter.sendMail(mailOption);
+    // Ajout du code de vérification ou du lien de reset dans les variables du template si besoin
+    // (déjà géré par templateVars lors de l'appel)
+
+    await transporter.sendMail(mailOptions);
 };
 
-// Fonction pour envoyer un mail de relance
-const sendReminderEmail = async (clientsMail, pdfName, type = 'invoice') => {
-    const transporter = nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.BREVO_USER,
-            pass: process.env.BREVO_PASS
-        }
-    });
-
-    let subject, text, folder;
-    subject = 'Rappel : Votre facture';
-    text = 'Bonjour, ceci est un rappel concernant votre facture.';
-    folder = 'invoices';
-
-    const mailOption = {
-        from: 'ranaivoson@styven-manaja.digital',
-        to: `${clientsMail}`,
-        subject,
-        text,
-        attachments: [
-            {
-                filename: `${pdfName}.pdf`,
-                path: `./${folder}/${pdfName}.pdf`
-            }
-        ]
-    };
-
-    // envoi du mail
-    await transporter.sendMail(mailOption);
-};
-
-// Fonction pour envoyer un mail après un paiement
-const sendPaymentConfirmationEmail = async (clientsMail, pdfName) => {
-    const transporter = nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.BREVO_USER,
-            pass: process.env.BREVO_PASS
-        }
-    });
-
-    const subject = 'Confirmation de paiement';
-    const text = 'Bonjour, votre paiement a bien été reçu.';
-
-    const mailOption = {
-        from: 'ranaivoson@styven-manaja.digital',
-        to: `${clientsMail}`,
-        subject,
-        text,
-        attachments: [
-            {
-                filename: `${pdfName}.pdf`,
-                path: `./invoices/${pdfName}.pdf`
-            }
-        ]
-    };
-
-    // envoi du mail
-    await transporter.sendMail(mailOption);
-};
-
-// Fonction pour envoyer un mail de vérification
-const sendVerificationEmail = async (clientsMail, verificationCode) => {
-    const transporter = nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.BREVO_USER,
-            pass: process.env.BREVO_PASS
-        }
-    });
-
-    const subject = 'Vérification de votre compte';
-    const text = `Bonjour, voici votre code de vérification : ${verificationCode}`;
-
-    const mailOption = {
-        from: 'ranaivoson@styven-manaja.digital',
-        to: `${clientsMail}`,
-        subject,
-        text
-    };
-
-    // envoi du mail
-    await transporter.sendMail(mailOption);
-};
-
-// Fonction pour envoyer un lien de réinitialisation de mot de passe
-const sendPasswordResetEmail = async (clientsMail, temporaryToken) => {
-    const transporter = nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.BREVO_USER,
-            pass: process.env.BREVO_PASS
-        }
-    });
-
-    const subject = 'Réinitialisation de votre mot de passe';
-    const resetLink = `https://frontend-domain.com/reset-password?token=${temporaryToken}`;
-    const text = `Bonjour, cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`;
-
-    const mailOption = {
-        from: 'ranaivoson@styven-manaja.digital',
-        to: `${clientsMail}`,
-        subject,
-        text
-    };
-
-    // envoi du mail
-    await transporter.sendMail(mailOption);
-};
-
-module.exports = { sendMailWithAttachment, sendReminderEmail, sendPaymentConfirmationEmail, sendVerificationEmail, sendPasswordResetEmail };
+module.exports = { sendMail };

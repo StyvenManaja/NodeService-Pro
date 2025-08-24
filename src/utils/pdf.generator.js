@@ -20,8 +20,8 @@ const createDevis = (devis, path) => {
     doc
         .fontSize(12)
         .text("NodeService Pro", { align: "left" })
-        .text('Nom: RANAIVOSON Manaja Styven')
-        .text('Email: ranaivoson@styven-manaja.digital')
+        .text(`Nom: ${devis.user.name}`)
+        .text(`Email: ${devis.user.email}`)
         .moveDown();
 
     // Informations sur le client
@@ -84,8 +84,8 @@ const createInvoice = (invoice, path) => {
     doc
         .fontSize(12)
         .text("NodeService Pro", { align: "left" })
-        .text('Nom: RANAIVOSON Manaja Styven')
-        .text('Email: ranaivoson@styven-manaja.digital')
+        .text(`Nom: ${invoice.user.name}`)
+        .text(`Email: ${invoice.user.email}`)
         .moveDown();
 
     // Informations sur le client
