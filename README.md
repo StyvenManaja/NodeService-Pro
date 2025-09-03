@@ -15,6 +15,14 @@ A professional Node.js REST API for managing clients, quotes, invoices, and serv
 - **Validation**: Joi-based request validation
 - **Extensible Architecture**: MVC, services, repositories, middlewares
 
+- **Payment & Subscription (LemonSqueezy)**: Users can subscribe, cancel, resume, and expire their subscription. Webhooks ensure real-time sync of subscription status. Only one active subscription per user is allowed. Secure signature verification for all webhooks.
+
+## Payment & Subscription
+
+- `POST /api/subscriptions/checkout` — Initiate LemonSqueezy checkout for subscription
+- Webhook endpoint `/api/webhook/lemonsqueezy` — Handles subscription events (created, cancelled, resumed, expired, etc.)
+
+
 ## Tech Stack
 
 - Node.js, Express
