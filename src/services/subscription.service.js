@@ -1,56 +1,71 @@
 const subscriptionRepository = require('../repositories/subscription.repository');
+const AppError = require('../utils/AppError');
 
 // Enregistrer un abonnement
 const registerSubscription = async (userId, lemonSqueezyId) => {
     try {
-        const subscriptionData = { userId, lemonSqueezyId }
-        return await subscriptionRepository.registerSubscription(subscriptionData);
-    } catch (error) {
-        if (error.message.includes('User already has an active subscription')) {
-            return { error: 'User already has an active subscription' };
+        const subscription = await subscriptionRepository.registerSubscription({ userId, lemonSqueezyId });
+        if(!subscription) {
+            throw new AppError('Can not active the subscription', 201);
         }
-        console.error('Error registering subscription:', error.message);
-        throw new Error('Failed to register subscription: ' + error.message);
+        return subscription;
+    } catch (error) {
+        if (error.message.includes('DUPLICATE_SUBSCRIPTION')) {
+            throw new AppError('User already has an active subscription', 409);
+        }
+        throw new AppError('Error registering subscription', 500);
     }
 }
 
 // Récuperer les données d'un abonnement
 const getSubscriptionData = async (userId) => {
     try {
-        return await subscriptionRepository.getSubscriptionData(userId);
+        const subscription = await subscriptionRepository.getSubscriptionData(userId);
+        if (!subscription) {
+            throw new AppError('No subscription found', 404);
+        }
+        return subscription;
     } catch (error) {
-        console.error('Error getting subscription data:', error.message);
-        throw new Error('Failed to get subscription data: ' + error.message);
+        throw new AppError('Error on getting subscription', 500);
     }
 };
 
 // Annuler un abonnement
 const cancelSubscription = async (lemonSqueezyId) => {
     try {
-        return await subscriptionRepository.cancelSubscription(lemonSqueezyId);
+        const subscription = await subscriptionRepository.cancelSubscription(lemonSqueezyId);
+        if (!subscription) {
+            throw new AppError('Can not cancel the subscription', 400);
+        }
+        return subscription;
     } catch (error) {
-        console.error('Error canceling subscription: ', error.message);
-        throw new Error('Failed to cancel subscription: ' + error.message);
+        throw new AppError('Error on canceling subscription', 500);
     }
 }
 
 // Reprendre un abonnement
 const resumeSubscription = async (lemonSqueezyId) => {
     try {
-        return await subscriptionRepository.resumeSubscription(lemonSqueezyId);
+        const subscription = await subscriptionRepository.resumeSubscription(lemonSqueezyId);
+        if (!subscription) {
+            throw new AppError('Can not resume the subscription', 400);
+        }
+        return subscription;
     } catch (error) {
-        console.error('Error resuming subscription: ', error.message);
-        throw new Error('Failed to resume subscription: ' + error.message);
+        throw new AppError('Error on resuming the subscription', 500);
     }
 }
 
 // Abonnement expiré
 const expireSubscription = async (lemonSqueezyId) => {
     try {
-        return await subscriptionRepository.expireSubscription(lemonSqueezyId);
+        const subscription = await subscriptionRepository.expireSubscription(lemonSqueezyId);
+        if (!subscription) {
+            throw new AppError('Can not set the subscription to expired', 400);
+        }
+        return subscription;
     } catch (error) {
-        console.error('Error expiring subscription: ', error.message);
-        throw new Error('Failed to expire subscription: ' + error.message);
+        throw new AppError('Error on expiring the subscription', 500);
     }
 }
 

@@ -1,18 +1,21 @@
 const verificationService = require('../services/verification.service');
+const AppError = require('../utils/appError');
 
-const verifyCode = async (req, res) => {
+const verifyCode = async (req, res, next) => {
     const { code } = req.body;
     const userId = req.userId;
     try {
         const isValid = await verificationService.verifyCode(userId, code);
         if (isValid) {
-            res.status(200).json({ message: 'Code vérifié avec succès' });
+            res.status(200).json({
+                status: 'success',
+                message: 'Verification code is valid'
+            });
         } else {
-            res.status(400).json({ error: 'Code de vérification invalide ou expiré' });
+            throw new AppError('Invalid or expired verification code', 400);
         }
     } catch (error) {
-        console.error('Erreur lors de la vérification du code:', error);
-        res.status(500).json({ error: 'Erreur interne du serveur' });
+        next(error);
     }
 };
 

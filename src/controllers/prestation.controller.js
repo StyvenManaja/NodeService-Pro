@@ -1,77 +1,77 @@
 const prestationService = require('../services/prestation.service');
 
 // Créer une prestation
-const createPrestation = async (req, res) => {
+const createPrestation = async (req, res, next) => {
     const { name, description, price } = req.body;
     const userId = req.userId;
     try {
         const newPrestation = await prestationService.createPrestation(userId, name, description, price);
-        if(!newPrestation) {
-            return res.status(400).json({ error: 'Error creating prestation' });
-        }
-        res.status(201).json(newPrestation);
+        res.status(201).json({
+            status: 'success',
+            data: newPrestation
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
 // Récuperer une prestation avec son ID
-const getPrestationById = async (req, res) => {
+const getPrestationById = async (req, res, next) => {
     const { prestationID } = req.params;
     const userId = req.userId;
     try {
         const prestation = await prestationService.getPrestationById(userId, prestationID);
-        if(!prestation) {
-            return res.status(404).json({ error: 'Prestation not found' });
-        }
-        res.status(200).json(prestation);
+        res.status(200).json({
+            status: 'success',
+            data: prestation
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
 // Récuperer la liste de toutes les prestations
-const getAllPrestations = async (req, res) => {
+const getAllPrestations = async (req, res, next) => {
     const userId = req.userId;
     try {
         const prestations = await prestationService.getAllPrestations(userId);
-        if(!prestations || prestations.length === 0) {
-            return res.status(404).json({ error: 'No prestations found' });
-        }
-        res.status(200).json(prestations);
+        res.status(200).json({
+            status: 'success',
+            data: prestations
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
 // Mettre à jours les données d'une prestation
-const updatePrestation = async (req, res) => {
+const updatePrestation = async (req, res, next) => {
     const { prestationID } = req.params;
     const prestationData = req.body;
     const userId = req.userId;
     try {
         const updatedPrestation = await prestationService.updatePrestation(userId, prestationID, prestationData);
-        if (!updatedPrestation) {
-            return res.status(404).json({ error: 'Prestation not found' });
-        }
-        res.status(200).json(updatedPrestation);
+        res.status(200).json({
+            status: 'success',
+            data: updatedPrestation
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
 // Supprimer une prestation
-const deletePrestation = async (req, res) => {
+const deletePrestation = async (req, res, next) => {
     const { prestationID } = req.params;
     const userId = req.userId;
     try {
         const deletedPrestation = await prestationService.deletePrestation(userId, prestationID);
-        if (!deletedPrestation) {
-            return res.status(404).json({ error: 'Prestation not found' });
-        }
-        res.status(204).json({ message: 'Prestation deleted successfully' });
+        res.status(204).json({
+            status: 'success',
+            data: deletedPrestation
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 

@@ -1,7 +1,8 @@
 const crypto = require('crypto');
 const subscriptionService = require('../services/subscription.service');
+const AppError = require('../utils/appError');
 
-const getWebhook = async (req, res) => {
+const getWebhook = async (req, res, next) => {
     try {
         const signature = req.headers['x-signature'];
         const payload = req.body; // Buffer
@@ -11,7 +12,7 @@ const getWebhook = async (req, res) => {
         const digest = hmac.digest('hex');
 
         if (signature !== digest) {
-            return res.status(401).json({ error: 'Invalid signature' });
+            throw new AppError('Invalid signature', 400);
         }
 
         // Parser le json
@@ -25,40 +26,51 @@ const getWebhook = async (req, res) => {
                 const lemonsqueezyId = event.data.id;
                 const subscription = await subscriptionService.registerSubscription(userId, lemonsqueezyId);
                 if(subscription && subscription.error === 'User already has an active subscription') {
-                    return res.status(409).json({ message: 'User already has an active subscription.' });
+                    throw new AppError('User already has an active subscription', 409);
                 }
-                if(!subscription) { return res.status(400).json({ message: 'Failed to create subscription.' }) };
-                res.status(200).json({ message: 'Subscription created successfully.' });
+                if(!subscription) { throw new AppError('Failed to create subscription', 400) };
+                res.status(200).json({
+                    status: 'success',
+                    data: subscription,
+                });
                 break;
             }
             case 'subscription_cancelled':
             {
                 const lemonSqueezyId = event.data.id;
                 const canceled = await subscriptionService.cancelSubscription(lemonSqueezyId);
-                if(!canceled) { return res.status(400).json({ message: 'Failed to cancel subscription.' }) };
-                res.status(200).json({ message: 'Subscription canceled successfully.' });
+                if(!canceled) { throw new AppError('Failed to cancel subscription', 400) };
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Subscription canceled successfully.'
+                });
                 break;
             }
             case 'subscription_resumed':
             {
                 const lemonSqueezyId = event.data.id;
                 const resumed = await subscriptionService.resumeSubscription(lemonSqueezyId);
-                if(!resumed) { return res.status(400).json({ message: 'Failed to resume subscription.' }) };
-                res.status(200).json({ message: 'Subscription resumed successfully.' });
+                if(!resumed) { throw new AppError('Failed to resume subscription', 400) };
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Subscription resumed successfully.'
+                });
                 break;
             }
             case 'subscription_expired':
             {
                 const lemonsqueezyId = event.data.id;
                 const subscription = await subscriptionService.expireSubscription(lemonsqueezyId);
-                if(!subscription) { return res.status(400).json({ message: 'Failed to set subscription status to expired.' }) };
-                res.status(200).json({ message: 'Subscription set expired successfully.' });
+                if(!subscription) { throw new AppError('Failed to set subscription status to expired', 400) };
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Subscription set expired successfully.'
+                });
                 break;
             }
         }
     } catch (error) {
-        console.error('Error handling webhook:', error);
-        return res.status(500).json({ error: 'Failed to handle webhook' });
+        next(error);
     }
 };
 

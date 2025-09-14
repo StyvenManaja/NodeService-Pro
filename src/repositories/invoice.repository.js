@@ -7,8 +7,20 @@ const createInvoice = async (userId, devisId, dueDate) => {
         await invoice.save();
         return invoice;
     } catch (error) {
-        console.error('Erreur lors de la création de la facture:', error);
-        throw new Error('Error creating invoice');
+        throw new Error('DB_ERROR');
+    }
+};
+
+// Récuperation d'une facture par ID
+const getInvoiceById = async (userId, invoiceId) => {
+    try {
+        const invoice = await Invoice.findOne({ user: userId, _id: invoiceId }).populate('devis');
+        if(invoice) {
+            await invoice.populate({ path: 'devis', populate: { path: 'prestations.prestation' } });
+        }
+        return invoice;
+    } catch (error) {
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -17,24 +29,22 @@ const getAllInvoices = async (userId) => {
     try {
         return await Invoice.find({ user: userId }).populate('devis');
     } catch (error) {
-        console.error('Erreur lors de la récupération des factures:', error);
-        throw new Error('Error fetching invoices');
+        throw new Error('DB_ERROR');
     }
 };
 
 // Payer une facture
 const payInvoice = async (userId, invoiceId) => {
     try {
-        const paid = await Invoice.findOneAndUpdate({ _id: invoiceId, user: userId }, { status: 'paid' }, { new: true });
-        return paid;
+        return await Invoice.findOneAndUpdate({ _id: invoiceId, user: userId }, { status: 'paid' }, { new: true });
     } catch (error) {
-        console.error('Erreur lors du paiement de la facture:', error);
-        throw new Error('Error paying invoice');
+        throw new Error('DB_ERROR');
     }
 };
 
 module.exports = {
     createInvoice,
+    getInvoiceById,
     getAllInvoices,
     payInvoice
 };

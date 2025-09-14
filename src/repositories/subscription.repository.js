@@ -6,14 +6,13 @@ const registerSubscription = async (subscriptionData) => {
         // Vérifie s'il existe déjà un abonnement actif pour cet utilisateur
         const existingActive = await Subscription.findOne({ userId: subscriptionData.userId, status: 'active' });
         if (existingActive) {
-            throw new Error('User already has an active subscription');
+            throw new Error('DUPLICATE_SUBSCRIPTION');
         }
         const subscription = new Subscription(subscriptionData);
         await subscription.save();
         return subscription;
     } catch (error) {
-        console.error('Error registering subscription: ', error.message);
-        throw new Error('Failed to register subscription: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -22,8 +21,7 @@ const getSubscriptionData = async (userId) => {
     try {
         return await Subscription.findOne({ userId: userId });
     } catch (error) {
-        console.error('Error getting subscription data: ', error.message);
-        throw new Error('Failed to get subscription data: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -35,8 +33,7 @@ const cancelSubscription = async (lemonSqueezyId) => {
             status: 'canceled'
         }, { new: true });
     } catch (error) {
-        console.error('Error canceling subscription: ', error.message);
-        throw new Error('Failed to cancel subscription: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 }
 
@@ -48,8 +45,7 @@ const resumeSubscription = async (lemonSqueezyId) => {
             status: 'active'
         }, { new: true });
     } catch (error) {
-        console.error('Error resuming subscription: ', error.message);
-        throw new Error('Failed to resume subscription: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 }
 
@@ -61,8 +57,7 @@ const expireSubscription = async (lemonSqueezyId) => {
             status: 'expired'
         }, { new: true });
     } catch (error) {
-        console.error('Error expiring subscription: ', error.message);
-        throw new Error('Failed to expire subscription: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 }
 

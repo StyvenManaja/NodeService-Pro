@@ -1,79 +1,77 @@
 const clientService = require('../services/client.service');
 
 // Création d'un client
-const createClient = async (req, res) => {
+const createClient = async (req, res, next) => {
     const { name, company, email, phone } = req.body;
-    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
+    const userId = req.userId;
     try {
         const client = await clientService.createClient(userId, name, company, email, phone);
-        if(!client) {
-            return res.status(400).json({ error: 'Error creating client' });
-        }
-        res.status(200).json(client);
+        res.status(201).json({
+            status: 'success',
+            data: client
+        });
     } catch (error) {
-        // Gestion des erreurs (doublon ou erreur serveur)
-        const status = error.message.includes('already exists') ? 409 : 500;
-        res.status(status).json({ error: error.message });
+        next(error);
     }
 };
 
 // Récuperation de la liste de tous les clients
-const getAllClients = async (req, res) => {
-    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
+const getAllClients = async (req, res, next) => {
+    const userId = req.userId;
     try {
         const clients = await clientService.getAllClients(userId);
-        if(!clients || clients.length === 0) {
-            return res.status(404).json({ error: 'No clients found' });
-        }
-        res.status(200).json(clients);
+        res.status(200).json({
+            status: 'success',
+            data: clients
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
 // Récuperer un client avec son ID
-const getClientById = async (req, res) => {
+const getClientById = async (req, res, next) => {
     const { clientId } = req.params;
-    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
+    const userId = req.userId;
     try {
         const client = await clientService.getClientById(userId, clientId);
-        if(!client) {
-            return res.status(404).json({ error: 'Client not found' });
-        }
-        res.status(200).json(client);
+        res.status(200).json({
+            status: 'success',
+            data: client
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
 // Mettre à jour les données d'un client
-const updateClient = async (req, res) => {
+const updateClient = async (req, res, next) => {
     const { clientId } = req.params;
     const clientData = req.body;
-    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
+    const userId = req.userId;
     try {
         const updatedClient = await clientService.updateClient(userId, clientId, clientData);
-        if(!updatedClient) {
-            return res.status(404).json({ error: 'Client not found' });
-        }
-        res.status(200).json(updatedClient);
+        res.status(200).json({
+            status: 'success',
+            data: updatedClient
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 
 // Supprimer un client
-const deleteClient = async (req, res) => {
+const deleteClient = async (req, res, next) => {
     const { clientId } = req.params;
-    const userId = req.userId; // Récupération de l'ID utilisateur à partir du token
+    const userId = req.userId;
     try {
         const deletedClient = await clientService.deleteClient(userId, clientId);
-        if(!deletedClient) {
-            return res.status(404).json({ error: 'Client not found' });
-        }
-        res.status(204).send();
+        res.status(204).json({
+            status: 'success',
+            data: deletedClient
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 

@@ -1,4 +1,3 @@
-
 // Chargement des variables d'environnement depuis le fichier .env
 require('dotenv').config();
 
@@ -12,7 +11,18 @@ require('./src/config/reminder.cron');
 const express = require('express');
 const cookieParser = require('cookie-parser'); // Pour parser les cookies
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+
+const errorHandler = require('./src/middlewares/errorHandler');
+
 const app = express();
+
+// Middleware de sécurité
+app.use(helmet());
+
+// Middleware de journalisation des requêtes HTTP
+app.use(morgan('combined'));
 
 // Importation des routes
 const userRoute = require('./src/routes/user.route');
@@ -34,11 +44,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL,
     credentials: true
 }));
 
-app.use("/api/webhooks/lemonsqueezy", express.raw({ type: "*/*" }));
+app.use('/api/webhooks/lemonsqueezy', express.raw({ type: "*/*" }));
 
 // Définition du préfixe pour toutes les routes
 app.use('/api/users', userRoute);
@@ -55,6 +65,8 @@ app.use('/api/webhook', webhookRoute);
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
+
+app.use(errorHandler);
 
 // Export de l'application pour l'utiliser dans server.js
 module.exports = app;

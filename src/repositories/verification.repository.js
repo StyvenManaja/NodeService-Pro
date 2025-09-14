@@ -8,7 +8,7 @@ const createAVerificationCode = async (userId) => {
         const verification = new Verification({ user: userId, code, expiresAt });
         return await verification.save();
     } catch (error) {
-        throw new Error('Erreur lors de la création du code de vérification');
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -16,7 +16,7 @@ const findVerificationByCode = async (userId) => {
     try {
         return await Verification.findOne({ user: userId, verified: false });
     } catch (error) {
-        throw new Error('Erreur lors de la recherche du code de vérification');
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -24,7 +24,7 @@ const deleteVerification = async (id) => {
     try {
         return await Verification.findByIdAndDelete(id);
     } catch (error) {
-        throw new Error('Erreur lors de la suppression du code de vérification');
+        throw new Error('DB_ERROR');
     }
 };
 

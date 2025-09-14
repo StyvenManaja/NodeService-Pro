@@ -1,11 +1,12 @@
 const dashboardRepository = require('../repositories/dashboard.repository');
+const AppError = require('../utils/AppError');
 
 const getDashboardData = async (userId) => {
     try {
         const data = await dashboardRepository.getDashboardData(userId);
 
         if(!data) {
-            throw new Error('No data found');
+            throw new AppError('No data found', 404);
         }
 
         // Montant total facturé
@@ -22,7 +23,7 @@ const getDashboardData = async (userId) => {
             devis: data.devis
         };
     } catch (error) {
-        throw new Error('Error fetching dashboard data: ' + error.message);
+        throw new AppError('Error on getting dashboard data', 500);
     }
 };
 

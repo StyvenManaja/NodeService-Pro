@@ -1,5 +1,6 @@
 const Invoices = require('../models/Invoices');
 const { sendMail } = require('../utils/mail.sender');
+const AppError = require('../utils/appError');
 
 function addDays(date, days) {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
@@ -64,7 +65,7 @@ const sendReminders = async () => {
                 attachmentFolder: 'invoices'
             });
         } catch (error) {
-            console.error(`Failed to send reminder email for invoice ${invoice._id}:`, error);
+            throw new AppError('Failed to send reminder email for invoice', 500);
         }
     }
 };

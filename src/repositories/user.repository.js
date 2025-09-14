@@ -10,10 +10,11 @@ const createUser = async (userData) => {
     } catch (error) {
         // Gestion des doublons MongoDB (code 11000)
         if (error.code === 11000) {
-            throw new Error('User already exists: ' + error.message);
+            const field = Object.keys(error.keyValue)[0];
+            throw new Error(`DUPLICATE_${field.toUpperCase()}`);
         }
         // Gestion des autres erreurs de création
-        throw new Error('Error on creating user: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -22,8 +23,7 @@ const findUserByEmail = async (email) => {
     try {
         return await User.findOne({ email });
     } catch (error) {
-        console.error('Error on finding user by email:', error);
-        throw new Error('Error on finding user by email');
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -32,8 +32,7 @@ const getUserById = async (userId) => {
     try {
         return await User.findById(userId).select();
     } catch (error) {
-        console.error('Error on finding user by id:', error);
-        throw new Error('Error on finding user by id');
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -42,8 +41,7 @@ const deleteAccount = async (userId) => {
     try {
         return await User.findByIdAndDelete(userId);
     } catch (error) {
-        console.error('Error on deleting account:', error);
-        throw new Error('Error on deleting account');
+        throw new Error('DB_ERROR');
     }
 };
 

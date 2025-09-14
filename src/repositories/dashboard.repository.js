@@ -17,7 +17,7 @@ const getDashboardData = async (userId) => {
             devis
         };
     } catch (error) {
-        throw new Error('Error fetching dashboard data: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 

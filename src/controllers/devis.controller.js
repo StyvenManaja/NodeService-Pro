@@ -1,7 +1,7 @@
 const devisService = require('../services/devis.service');
 
 // Crée un devis
-const createDevis = async (req, res) => {
+const createDevis = async (req, res, next) => {
     try {
         let { prestations, ...rest } = req.body;
         const userId = req.userId; // Récupération de l'ID utilisateur depuis le token JWT
@@ -10,30 +10,46 @@ const createDevis = async (req, res) => {
             prestations = prestations.map(id => ({ prestation: id, quantity: 1 }));
         }
         const devis = await devisService.createDevis({ ...rest, prestations, user: userId });
-        if(!devis) {
-            return res.status(400).json({ message: 'Error creating devis' });
-        }
-        res.status(201).json(devis);
+        res.status(201).json({
+            status: 'success',
+            data: devis
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
+    }
+};
+
+// Récuperer un devis par son ID
+const getDevisById = async (req, res, next) => {
+    const { devisId } = req.params;
+    const userId = req.userId;
+    try {
+        const devis = await devisService.getDevisById(userId, devisId);
+        res.status(200).json({
+            status: 'success',
+            data: devis
+        });
+    } catch (error) {
+        next(error);
     }
 };
 
 // Récuperation de la liste de tous les devis
-const getAllDevis = async (req, res) => {
-    const userId = req.userId; // Récupération de l'ID utilisateur depuis le token JWT
+const getAllDevis = async (req, res, next) => {
+    const userId = req.userId;
     try {
         const devis = await devisService.getAllDevis(userId);
-        if(!devis || devis.length === 0) {
-            return res.status(404).json({ message: 'No devis found' });
-        }
-        res.status(200).json(devis);
+        res.status(200).json({
+            status: 'success',
+            data: devis
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 module.exports = {
     createDevis,
+    getDevisById,
     getAllDevis
 };

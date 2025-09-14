@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const createCheckoutSession = async (req, res) => {
+const createCheckoutSession = async (req, res, next) => {
     const userId = req.userId;
     try {
         const response = await axios.post(
@@ -40,26 +40,28 @@ const createCheckoutSession = async (req, res) => {
         );
 
         return res.status(200).json({
+            status: 'success',
             checkoutUrl: response.data.data.attributes.url
         });
     } catch (error) {
-        console.error('Error creating checkout session:', error.response?.data || error.message);
-        return res.status(500).json({ error: 'Failed to create checkout session' });
+        next(error);
     }
 };
 
-const getSubscriptionData = async (req, res) => {
+const getSubscriptionData = async (req, res, next) => {
     const userId = req.userId;
     try {
         const subscriptionData = await subscriptionService.getSubscriptionData(userId);
-        return res.status(200).json(subscriptionData);
+        return res.status(200).json({
+            status: 'success',
+            data: subscriptionData
+        });
     } catch (error) {
-        console.error('Error getting subscription data:', error);
-        return res.status(500).json({ error: 'Failed to get subscription data' });
+        next(error);
     }
 };
 
-const cancelSubscription = async (req, res) => {
+const cancelSubscription = async (req, res, next) => {
     try {
         const subscriptionId = req.params.id;
         const response = await axios.delete(
@@ -73,15 +75,15 @@ const cancelSubscription = async (req, res) => {
         );
 
         return res.status(200).json({
+            status: 'success',
             message: 'Subscription canceled successfully'
         });
     } catch (error) {
-        console.error('Error canceling subscription:', error.response?.data || error.message);
-        return res.status(500).json({ error: 'Failed to cancel subscription' });
+        next(error);
     }
 }
 
-const resumeSubscription = async (req, res) => {
+const resumeSubscription = async (req, res, next) => {
     try {
         const lemonSqueezyId = req.params.id;
         const response = await axios.patch(
@@ -105,11 +107,11 @@ const resumeSubscription = async (req, res) => {
         );
 
         return res.status(200).json({
+            status: 'success',
             message: 'Subscription resumed successfully'
         });
     } catch (error) {
-        console.error('Error resuming subscription:', error.response?.data || error.message);
-        return res.status(500).json({ error: 'Failed to resume subscription' });
+        next(error);
     }
 }
 

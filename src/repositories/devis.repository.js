@@ -6,7 +6,16 @@ const createDevis = async (devisData) => {
         const devis = new Devis(devisData);
         return await devis.save();
     } catch (error) {
-        throw new Error('Error creating devis');
+        throw new Error('DB_ERROR');
+    }
+};
+
+// Récupérer un devis par ID
+const getDevisById = async (devisId) => {
+    try {
+        return await Devis.findById(devisId).populate('client').populate('prestations.prestation');
+    } catch (error) {
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -15,11 +24,12 @@ const getAllDevis = async (userId) => {
     try {
         return await Devis.find({ user: userId }).populate('client').populate('prestations.prestation');
     } catch (error) {
-        throw new Error('Error fetching devis');
+        throw new Error('DB_ERROR');
     }
 };
 
 module.exports = {
     createDevis,
+    getDevisById,
     getAllDevis
 };

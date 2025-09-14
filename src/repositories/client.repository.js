@@ -8,10 +8,11 @@ const createClient = async (clientData) => {
     } catch (error) {
         // Gestion des doublons MongoDB (code 11000)
         if (error.code === 11000) {
-            throw new Error('Client already exists: ' + error.message);
+            const field = Object.keys(error.keyValue)[0];
+            throw new Error(`DUPLICATE_${field.toUpperCase()}`);
         }
         // Gestion des autres erreurs de création
-        throw new Error('Error on creating client: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -20,7 +21,7 @@ const getClientById = async (userId, clientId) => {
     try {
         return await Client.findOne({ _id: clientId, user: userId });
     } catch (error) {
-        throw new Error('Error fetching client: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -29,16 +30,20 @@ const getAllClients = async (userId) => {
     try {
         return await Client.find({ user: userId });
     } catch (error) {
-        throw new Error('Error fetching clients: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
 // Mise à jour d'un client
 const updateClient = async (userId, clientId, clientData) => {
     try {
-        return await Client.findOneAndUpdate({ _id: clientId, user: userId }, clientData, { new: true });
+        return await Client.findOneAndUpdate(
+            { _id: clientId, user: userId },
+            clientData,
+            { new: true, runValidators: true }
+        );
     } catch (error) {
-        throw new Error('Error updating client: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -47,7 +52,7 @@ const deleteClient = async (userId, clientId) => {
     try {
         return await Client.findOneAndDelete({ _id: clientId, user: userId });
     } catch (error) {
-        throw new Error('Error deleting client: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 

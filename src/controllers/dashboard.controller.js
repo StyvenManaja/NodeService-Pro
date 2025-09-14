@@ -1,15 +1,15 @@
 const dashboardService = require('../services/dashboard.service');
 
-const getDashboard = async (req, res) => {
+const getDashboard = async (req, res, next) => {
     const userId = req.userId;
     try {
         const data = await dashboardService.getDashboardData(userId);
-        if(!data) {
-            return res.status(404).json({ error: 'Data not found' });
-        }
-        res.json(data);
+        res.status(200).json({
+            status: 'success',
+            data: data
+        })
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error: ' + error.message });
+        next(error);
     }
 };
 

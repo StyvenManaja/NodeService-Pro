@@ -1,6 +1,7 @@
 const invoiceRepository = require('../repositories/invoice.repository');
 const PDFGenerator = require('../utils/pdf.generator');
 const mailSender = require('../utils/mail.sender');
+const AppError = require('../utils/AppError');
 
 const fs = require('fs');
 const path = require('path');
@@ -69,24 +70,39 @@ const createInvoice = async (userId, devisId, dueDate) => {
                     attachmentFolder: 'invoices'
                 });
             } catch (pdfError) {
-                console.error('Erreur lors de la génération du PDF:', pdfError);
+                throw new AppError('Can not generate pdf', 500);
             }
             return invoice;
         }
-        return null;
+        throw new AppError('Can not create invoice', 400);
     } catch (error) {
-        console.error('Erreur lors de la création de la facture:', error);
-        throw new Error('Error creating invoice');
+        throw new AppError('Error creating invoice', 500);
+    }
+};
+
+// Récuperer un facture par son ID
+const getInvoiceById = async (userId, invoiceId) => {
+    try {
+        const invoice = await invoiceRepository.getInvoiceById(userId, invoiceId);
+        if (!invoice) {
+            throw new AppError('Invoice not found', 404);
+        }
+        return invoice;
+    } catch (error) {
+        throw new AppError('Error getting the invoice', 500);
     }
 };
 
 // Récuperer toutes les factures
 const getAllInvoices = async (userId) => {
     try {
-        return await invoiceRepository.getAllInvoices(userId);
+        const invoices = await invoiceRepository.getAllInvoices(userId);
+        if(invoices.length === 0 || !invoices ) {
+            throw new AppError('No invoices found', 404);
+        }
+        return invoices;
     } catch (error) {
-        console.error('Erreur lors de la récupération des factures:', error);
-        throw new Error('Error fetching invoices');
+        throw new AppError('Error getting all invoices', 500);
     }
 };
 
@@ -110,7 +126,7 @@ const payInvoice = async (userId, invoiceId) => {
                         <h2 style="color: #28a745;">Confirmation de paiement</h2>
                         <p>Bonjour,</p>
                         <p>Nous avons bien reçu votre paiement. Merci !</p>
-                        <p style="margin-top:20px;">L'équipe Styven Manaja Digital</p>
+                        <p style="margin-top:20px;">L'équipe Organivo</p>
                     </div>
                 `,
                 attachmentName: `invoice-${invoice._id}`,
@@ -118,15 +134,15 @@ const payInvoice = async (userId, invoiceId) => {
             });
             return invoice;
         }
-        return null;
+        throw new AppError('Can not pay the invoice', 400);
     } catch (error) {
-        console.error('Erreur lors du paiement de la facture:', error);
-        throw new Error('Error paying invoice');
+        throw new AppError('Error on paying the invoice', 500);
     }
 };
 
 module.exports = {
     createInvoice,
+    getInvoiceById,
     getAllInvoices,
     payInvoice
 };

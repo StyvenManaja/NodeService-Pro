@@ -8,10 +8,11 @@ const createPrestation = async (prestationData) => {
     } catch (error) {
         // Gestion des doublons MongoDB (code 11000)
         if (error.code === 11000) {
-            throw new Error('Prestation already exists: ' + error.message);
+            const field = Object.keys(error.keyValue)[0];
+            throw new Error(`DUPLICATE_${field.toUpperCase()}`);
         }
         // Gestion des autres erreurs de création
-        throw new Error('Error on creating prestation: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -20,7 +21,7 @@ const getPrestationById = async (userId, prestationId) => {
     try {
         return await Prestation.findOne({ user: userId, _id: prestationId });
     } catch (error) {
-        throw new Error('Error fetching prestation: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -29,7 +30,7 @@ const getAllPrestations = async (userId) => {
     try {
         return await Prestation.find({ user: userId });
     } catch (error) {
-        throw new Error('Error fetching prestations: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -38,7 +39,7 @@ const updatePrestation = async (userId, prestationId, prestationData) => {
     try {
         return await Prestation.findOneAndUpdate({user: userId, _id: prestationId}, prestationData, { new: true });
     } catch (error) {
-        throw new Error('Error updating prestation: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 
@@ -47,7 +48,7 @@ const deletePrestation = async (userId, prestationId) => {
     try {
         return await Prestation.findOneAndDelete({ user: userId, _id: prestationId});
     } catch (error) {
-        throw new Error('Error deleting prestation: ' + error.message);
+        throw new Error('DB_ERROR');
     }
 };
 

@@ -2,6 +2,7 @@ const devisRepository = require('../repositories/devis.repository');
 const PDFGenerator = require('../utils/pdf.generator');
 const mailSender = require('../utils/mail.sender');
 const Prestation = require('../models/Prestations');
+const AppError = require('../utils/AppError');
 
 // Crée un devis
 const fs = require('fs');
@@ -90,35 +91,51 @@ const createDevis = async (devisData) => {
                             <h2 style="color: #007bff;">Votre devis</h2>
                             <p>Bonjour,</p>
                             <p>Veuillez trouver votre devis en pièce jointe.</p>
-                            <p style="margin-top:20px;">Merci pour votre confiance.<br>L'équipe Styven Manaja Digital</p>
+                            <p style="margin-top:20px;">Merci pour votre confiance.<br>L'équipe Organivo</p>
                         </div>
                     `,
                     attachmentName: devis.id,
                     attachmentFolder: 'devis'
                 });
             } catch (pdfError) {
-                console.error('Erreur lors de la génération du PDF:', pdfError);
+                throw new AppError('Error on generating pdf', 500);
             }
             return devis;
         }
-        return null;
+        throw new AppError('Can not create devis', 400);
     } catch (error) {
-        console.error('Erreur lors de la création du devis:', error);
-        throw new Error('Error creating devis');
+        throw new AppError('Error on creating devis', 500);
+    }
+};
+
+// Récuperer un devis par son ID
+const getDevisById = async (userId, devisId) => {
+    try {
+        const devis = await devisRepository.getDevisById(devisId);
+        if (!devis) {
+            throw new AppError('Devis not found', 404);
+        }
+        return devis;
+    } catch (error) {
+        throw new AppError('Error finding devis', 500);
     }
 };
 
 // Récuperer la liste de tous les devis
 const getAllDevis = async (userId) => {
     try {
-        return await devisRepository.getAllDevis(userId);
+        const devis = await devisRepository.getAllDevis(userId);
+        if (!devis) {
+            throw new AppError('No devis found', 404);
+        }
+        return devis;
     } catch (error) {
-        console.error('Erreur lors de la récupération des devis:', error);
-        throw new Error('Error fetching quotes');
+        throw new AppError('Error on finding all devis', 500);
     }
 }
 
 module.exports = {
     createDevis,
+    getDevisById,
     getAllDevis
 };
