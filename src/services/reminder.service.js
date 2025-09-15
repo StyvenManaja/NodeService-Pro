@@ -1,6 +1,6 @@
 const Invoices = require('../models/Invoices');
 const { sendMail } = require('../utils/mail.sender');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 
 function addDays(date, days) {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);

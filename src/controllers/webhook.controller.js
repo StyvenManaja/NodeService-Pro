@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const subscriptionService = require('../services/subscription.service');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 
 const getWebhook = async (req, res, next) => {
     try {

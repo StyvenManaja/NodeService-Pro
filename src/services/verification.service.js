@@ -1,5 +1,5 @@
 const verificationRepository = require('../repositories/verification.repository');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 
 const verifyCode = async (userId, code) => {
     try {

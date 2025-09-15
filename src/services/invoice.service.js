@@ -22,26 +22,36 @@ const createInvoice = async (userId, devisId, dueDate) => {
             });
             const devis = invoice.devis;
 
+            // Génération des lignes du tableau prestations pour le template HTML
+            const prestationsRows = devis.prestations.map(p =>
+              `<tr>
+                <td>${p.prestation.name}</td>
+                <td class="right">${p.prestation.price} €</td>
+                <td class="right">${p.quantity}</td>
+                <td class="right">${p.prestation.price * p.quantity} €</td>
+              </tr>`
+            ).join('');
+
             // Création des données utiles pour la création de la facture en PDF
             const invoiceData = {
                 user: {
                     name: devis.user.lastname,
-                    email: devis.user.email
+                    email: devis.user.email,
+                    phone: devis.user.phone || '',
+                    company: devis.user.company || ''
                 },
                 client: {
                     name: devis.client.name,
                     email: devis.client.email,
-                    company: devis.client.company,
-                    phone: devis.client.phone
+                    company: devis.client.company || '',
+                    phone: devis.client.phone || ''
                 },
                 date: devis.createdAt,
-                prestations: devis.prestations.map(p => ({
-                    name: p.prestation.name,
-                    description: p.prestation.description,
-                    price: p.prestation.price,
-                    quantity: p.quantity
-                })),
-                totalAmount: devis.totalAmount
+                prestationsRows,
+                totalAmount: devis.totalAmount,
+                subTotal: (devis.totalAmount / 1.2).toFixed(2),
+                tva: (devis.totalAmount - devis.totalAmount / 1.2).toFixed(2),
+                number: String(invoice._id).slice(-8)
             };
 
             // Vérifie que le dossier factures existe

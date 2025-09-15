@@ -1,5 +1,5 @@
 const verificationService = require('../services/verification.service');
-const AppError = require('../utils/appError');
+const AppError = require('../utils/AppError');
 
 const verifyCode = async (req, res, next) => {
     const { code } = req.body;

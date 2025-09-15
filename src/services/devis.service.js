@@ -52,6 +52,16 @@ const createDevis = async (devisData) => {
                 throw new Error('Client not found');
             }
 
+            // Génération des lignes du tableau prestations pour le template HTML
+            const prestationsRows = devis.prestations.map(p =>
+              `<tr>
+                <td>${p.prestation.name}</td>
+                <td class="right">${p.prestation.price} €</td>
+                <td class="right">${p.quantity}</td>
+                <td class="right">${p.prestation.price * p.quantity} €</td>
+              </tr>`
+            ).join('');
+
             // Préparation des données pour le PDF
             const devisData = {
                 user: {
@@ -70,7 +80,10 @@ const createDevis = async (devisData) => {
                     price: p.prestation.price,
                     quantity: p.quantity
                 })),
+                prestationsRows,
                 totalAmount: devis.totalAmount,
+                subTotal: (devis.totalAmount / 1.2).toFixed(2),
+                tva: (devis.totalAmount - devis.totalAmount / 1.2).toFixed(2),
                 validityPeriod: devis.validityPeriod,
                 date: devis.createdAt
             };
