@@ -11,9 +11,9 @@ const createDevis = async (devisData) => {
 };
 
 // Récupérer un devis par ID
-const getDevisById = async (devisId) => {
+const getDevis = async (userId, devisId) => {
     try {
-        return await Devis.findById(devisId).populate('client').populate('prestations.prestation');
+        return await Devis.findOne({ _id: devisId, user: userId }).populate('client').populate('prestations.prestation');
     } catch (error) {
         throw new Error('DB_ERROR');
     }
@@ -30,6 +30,6 @@ const getAllDevis = async (userId) => {
 
 module.exports = {
     createDevis,
-    getDevisById,
+    getDevis,
     getAllDevis
 };

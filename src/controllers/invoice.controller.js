@@ -60,9 +60,41 @@ const payInvoice = async (req, res, next) => {
     }
 };
 
+// Générer un PDF pour une facture
+const generateInvoicePDF = async (req, res, next) => {
+    const { invoiceId } = req.params;
+    const userId = req.userId;
+    try {
+        const pdf = await invoiceService.generateInvoicePDF(userId, invoiceId);
+        res.status(201).json({
+            status: 'success',
+            data: { pdfUrl: pdf }
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Envoyer une facture par email
+const sendInvoiceByEmail = async (req, res, next) => {
+    const { invoiceId } = req.params;
+    const userId = req.userId;
+    try {
+        await invoiceService.sendInvoiceByEmail(userId, invoiceId);
+        res.status(200).json({
+            status: 'success',
+            message: 'Invoice sent by email'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createInvoice,
     getInvoiceById,
     getAllInvoices,
-    payInvoice
+    payInvoice,
+    generateInvoicePDF,
+    sendInvoiceByEmail
 };

@@ -11,5 +11,7 @@ router.post('/:devisId', authenticateUser, isVerified, verifySubscription, valid
 router.get('/:invoiceId', authenticateUser, isVerified, verifySubscription, invoiceController.getInvoiceById);
 router.get('/', authenticateUser, isVerified, verifySubscription, invoiceController.getAllInvoices);
 router.post('/:invoiceId/pay', authenticateUser, isVerified, verifySubscription, invoiceController.payInvoice);
+router.post('/:invoiceId/pdf', authenticateUser, isVerified, verifySubscription, invoiceController.generateInvoicePDF);
+router.post('/:invoiceId/email', authenticateUser, isVerified, verifySubscription, invoiceController.sendInvoiceByEmail);
 
 module.exports = router;

@@ -10,81 +10,10 @@ const path = require('path');
 const createInvoice = async (userId, devisId, dueDate) => {
     try {
         const invoice = await invoiceRepository.createInvoice(userId, devisId, dueDate);
-        if(invoice) {
-            // Peupler le devis, puis le client, les prestations et l'utilisateur
-            await invoice.populate({
-                path: 'devis',
-                populate: [
-                    { path: 'client' },
-                    { path: 'prestations.prestation' },
-                    { path: 'user' }
-                ]
-            });
-            const devis = invoice.devis;
-
-            // Génération des lignes du tableau prestations pour le template HTML
-            const prestationsRows = devis.prestations.map(p =>
-              `<tr>
-                <td>${p.prestation.name}</td>
-                <td class="right">${p.prestation.price} €</td>
-                <td class="right">${p.quantity}</td>
-                <td class="right">${p.prestation.price * p.quantity} €</td>
-              </tr>`
-            ).join('');
-
-            // Création des données utiles pour la création de la facture en PDF
-            const invoiceData = {
-                user: {
-                    name: devis.user.lastname,
-                    email: devis.user.email,
-                    phone: devis.user.phone || '',
-                    company: devis.user.company || ''
-                },
-                client: {
-                    name: devis.client.name,
-                    email: devis.client.email,
-                    company: devis.client.company || '',
-                    phone: devis.client.phone || ''
-                },
-                date: devis.createdAt,
-                prestationsRows,
-                totalAmount: devis.totalAmount,
-                subTotal: (devis.totalAmount / 1.2).toFixed(2),
-                tva: (devis.totalAmount - devis.totalAmount / 1.2).toFixed(2),
-                number: String(invoice._id).slice(-8)
-            };
-
-            // Vérifie que le dossier factures existe
-            const invoicesDir = path.resolve('./invoices');
-            if (!fs.existsSync(invoicesDir)) {
-                fs.mkdirSync(invoicesDir);
-            }
-
-            // Génération du PDF
-            try {
-                const pdfFileName = `invoice-${invoice._id}`;
-                await PDFGenerator.createInvoice(invoiceData, path.join(invoicesDir, `${pdfFileName}.pdf`));
-                await mailSender.sendMail({
-                    to: devis.client.email,
-                    subject: 'Votre facture',
-                    text: 'Bonjour, voici votre facture en pièce jointe.',
-                    html: `
-                        <div style="font-family: Arial, sans-serif; color: #222;">
-                            <h2 style="color: #007bff;">Votre facture</h2>
-                            <p>Bonjour,</p>
-                            <p>Veuillez trouver votre facture en pièce jointe.</p>
-                            <p style="margin-top:20px;">Merci pour votre confiance.<br>L'équipe Styven Manaja Digital</p>
-                        </div>
-                    `,
-                    attachmentName: pdfFileName,
-                    attachmentFolder: 'invoices'
-                });
-            } catch (pdfError) {
-                throw new AppError('Can not generate pdf', 500);
-            }
-            return invoice;
+        if(!invoice) {
+            throw new AppError('Can not create invoice', 400);
         }
-        throw new AppError('Can not create invoice', 400);
+        return invoice;
     } catch (error) {
         throw new AppError('Error creating invoice', 500);
     }
@@ -130,15 +59,10 @@ const payInvoice = async (userId, invoiceId) => {
             await mailSender.sendMail({
                 to: invoice.devis.client.email,
                 subject: 'Confirmation de paiement',
-                text: 'Bonjour, votre paiement a bien été reçu.',
-                html: `
-                    <div style="font-family: Arial, sans-serif; color: #222;">
-                        <h2 style="color: #28a745;">Confirmation de paiement</h2>
-                        <p>Bonjour,</p>
-                        <p>Nous avons bien reçu votre paiement. Merci !</p>
-                        <p style="margin-top:20px;">L'équipe Organivo</p>
-                    </div>
-                `,
+                templateName: 'payment',
+                templateVars: {
+                    clientName: invoice.devis.client.name
+                },
                 attachmentName: `invoice-${invoice._id}`,
                 attachmentFolder: 'invoices'
             });
@@ -150,9 +74,122 @@ const payInvoice = async (userId, invoiceId) => {
     }
 };
 
+// Générer un PDF pour une facture
+const generateInvoicePDF = async (userId, invoiceId) => {
+    try {
+        const invoice = await invoiceRepository.getInvoiceById(userId, invoiceId);
+        if (!invoice) {
+            throw new AppError('Invoice not found', 404);
+        }
+
+        // Peupler le devis, puis le client, les prestations et l'utilisateur
+        await invoice.populate({
+            path: 'devis',
+            populate: [
+                { path: 'client' },
+                { path: 'prestations.prestation' },
+                { path: 'user' }
+            ]
+        });
+        const devis = invoice.devis;
+
+        // Génération des lignes du tableau prestations pour le template HTML
+        const prestationsRows = devis.prestations.map(p =>
+          `<tr>
+            <td>${p.prestation.name}</td>
+            <td class="right">${p.prestation.price} €</td>
+            <td class="right">${p.quantity}</td>
+            <td class="right">${p.prestation.price * p.quantity} €</td>
+          </tr>`
+        ).join('');
+
+        // Création des données utiles pour la création de la facture en PDF
+        const invoiceData = {
+            user: {
+                name: devis.user.lastname,
+                email: devis.user.email,
+                phone: devis.user.phone || '',
+                company: devis.user.company || ''
+            },
+            client: {
+                name: devis.client.name,
+                email: devis.client.email,
+                company: devis.client.company || '',
+                phone: devis.client.phone || ''
+            },
+            date: devis.createdAt,
+            prestationsRows,
+            totalAmount: devis.totalAmount,
+            subTotal: (devis.totalAmount / 1.2).toFixed(2),
+            tva: (devis.totalAmount - devis.totalAmount / 1.2).toFixed(2),
+            number: String(invoice._id).slice(-8)
+        };
+
+        // Vérifie que le dossier factures existe
+        const invoicesDir = path.resolve('./invoices');
+        if (!fs.existsSync(invoicesDir)) {
+            fs.mkdirSync(invoicesDir);
+        }
+
+        // Génération du PDF
+        try {
+            const pdfFileName = `invoice-${invoice._id}`;
+            await PDFGenerator.createInvoice(invoiceData, path.join(invoicesDir, `${pdfFileName}.pdf`));
+            return `${pdfFileName}.pdf`;
+        } catch (pdfError) {
+            throw new AppError('Can not generate pdf', 500);
+        }
+    } catch (error) {
+        throw new AppError('Error generating invoice PDF', 500);
+    }
+};
+
+// Envoyer une facture par email
+const sendInvoiceByEmail = async (userId, invoiceId) => {
+    try {
+        const invoice = await invoiceRepository.getInvoiceById(userId, invoiceId);
+        if(!invoice) {
+            throw new AppError('Invoice not found', 404);
+        }
+
+        await invoice.populate({
+            path: 'devis',
+            populate: [
+                { path: 'client' },
+                { path: 'prestations.prestation' },
+                { path: 'user' }
+            ]
+        });
+
+        // Vérifier si le pdf existe déjà, sinon le générer
+    const pdfFileName = `invoice-${invoice._id}`;
+    const pdfFilePath = path.join('./invoices', `${pdfFileName}.pdf`);
+        if (!fs.existsSync(pdfFilePath)) {
+            await generateInvoicePDF(userId, invoiceId);
+        }
+
+        // Préparation des données pour l'email et envoi
+        await mailSender.sendMail({
+            to: invoice.devis.client.email,
+            subject: 'Votre facture',
+            templateName: 'invoice',
+            templateVars: {
+                clientName: invoice.devis.client.name
+            },
+            attachmentName: pdfFileName,
+            attachmentFolder: 'invoices'
+        });
+        return invoice;
+    } catch(error) {
+        throw new AppError('Error sending invoice by email', 500);
+    }
+};
+
 module.exports = {
     createInvoice,
     getInvoiceById,
     getAllInvoices,
-    payInvoice
+    payInvoice,
+    generateInvoicePDF,
+    sendInvoiceByEmail
 };

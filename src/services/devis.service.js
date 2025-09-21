@@ -41,81 +41,10 @@ const createDevis = async (devisData) => {
         };
 
         let devis = await devisRepository.createDevis(devisToCreate);
-        if(devis) {
-            // Population des données client, prestations et users
-            devis = await devis.populate('client');
-            devis = await devis.populate('prestations.prestation');
-            devis = await devis.populate('user');
-
-            // Vérification de l'existence du client
-            if (!devis.client) {
-                throw new Error('Client not found');
-            }
-
-            // Génération des lignes du tableau prestations pour le template HTML
-            const prestationsRows = devis.prestations.map(p =>
-              `<tr>
-                <td>${p.prestation.name}</td>
-                <td class="right">${p.prestation.price} €</td>
-                <td class="right">${p.quantity}</td>
-                <td class="right">${p.prestation.price * p.quantity} €</td>
-              </tr>`
-            ).join('');
-
-            // Préparation des données pour le PDF
-            const devisData = {
-                user: {
-                    name: devis.user.lastname,
-                    email: devis.user.email
-                },
-                client: {
-                    name: devis.client.name,
-                    email: devis.client.email,
-                    company: devis.client.company,
-                    phone: devis.client.phone
-                },
-                prestations: devis.prestations.map(p => ({
-                    name: p.prestation.name,
-                    description: p.prestation.description,
-                    price: p.prestation.price,
-                    quantity: p.quantity
-                })),
-                prestationsRows,
-                totalAmount: devis.totalAmount,
-                subTotal: (devis.totalAmount / 1.2).toFixed(2),
-                tva: (devis.totalAmount - devis.totalAmount / 1.2).toFixed(2),
-                validityPeriod: devis.validityPeriod,
-                date: devis.createdAt
-            };
-
-            // Vérifie que le dossier devis existe
-            const devisDir = path.resolve('./devis');
-            if (!fs.existsSync(devisDir)) {
-                fs.mkdirSync(devisDir);
-            }
-            try {
-                await PDFGenerator.createDevis(devisData, path.join(devisDir, `${devis.id}.pdf`));
-                await mailSender.sendMail({
-                    to: devis.client.email,
-                    subject: 'Votre devis',
-                    text: 'Bonjour, voici votre devis en pièce jointe.',
-                    html: `
-                        <div style="font-family: Arial, sans-serif; color: #222;">
-                            <h2 style="color: #007bff;">Votre devis</h2>
-                            <p>Bonjour,</p>
-                            <p>Veuillez trouver votre devis en pièce jointe.</p>
-                            <p style="margin-top:20px;">Merci pour votre confiance.<br>L'équipe Organivo</p>
-                        </div>
-                    `,
-                    attachmentName: devis.id,
-                    attachmentFolder: 'devis'
-                });
-            } catch (pdfError) {
-                throw new AppError('Error on generating pdf', 500);
-            }
-            return devis;
+        if(!devis) {
+            throw new AppError('Devis not created', 400);
         }
-        throw new AppError('Can not create devis', 400);
+        return devis;
     } catch (error) {
         throw new AppError('Error on creating devis', 500);
     }
@@ -124,7 +53,7 @@ const createDevis = async (devisData) => {
 // Récuperer un devis par son ID
 const getDevisById = async (userId, devisId) => {
     try {
-        const devis = await devisRepository.getDevisById(devisId);
+        const devis = await devisRepository.getDevis(userId, devisId);
         if (!devis) {
             throw new AppError('Devis not found', 404);
         }
@@ -147,8 +76,123 @@ const getAllDevis = async (userId) => {
     }
 }
 
+// Générer un PDF pour un devis
+const generateDevisPDF = async (userId, devisId) => {
+    try {
+        const devis = await devisRepository.getDevis(userId, devisId);
+        if (!devis) {
+            throw new AppError('Devis not found', 404);
+        }
+
+        // Population des données client, prestations et users
+        await devis.populate('client');
+        await devis.populate('prestations.prestation');
+        await devis.populate('user');
+
+        // Vérification de l'existence du client
+        if (!devis.client) {
+            throw new AppError('Client not found', 404);
+        }
+
+        // Génération des lignes du tableau prestations pour le template HTML
+                const prestationsRows = devis.prestations.map(p =>
+                    `<tr>
+                        <td>
+                            <div>${p.prestation.name}</div>
+                            ${p.prestation.description ? `<div style="color:#666;font-size:11px;">${p.prestation.description}</div>` : ''}
+                        </td>
+                        <td class="right">${p.prestation.price} €</td>
+                        <td class="right">${p.quantity}</td>
+                        <td class="right">${p.prestation.price * p.quantity} €</td>
+                    </tr>`
+                ).join('');
+
+        // Préparation des données pour le PDF
+        const devisData = {
+            user: {
+                name: devis.user.lastname,
+                email: devis.user.email
+            },
+            client: {
+                name: devis.client.name,
+                email: devis.client.email,
+                company: devis.client.company,
+                phone: devis.client.phone
+            },
+            prestations: devis.prestations.map(p => ({
+                name: p.prestation.name,
+                description: p.prestation.description,
+                price: p.prestation.price,
+                quantity: p.quantity
+            })),
+            prestationsRows,
+            totalAmount: devis.totalAmount,
+            subTotal: (devis.totalAmount / 1.2).toFixed(2),
+            tva: (devis.totalAmount - devis.totalAmount / 1.2).toFixed(2),
+            validityPeriod: devis.validityPeriod,
+            date: devis.createdAt
+        };
+
+        // Vérifie que le dossier devis existe
+        const devisDir = path.resolve('./devis');
+        if (!fs.existsSync(devisDir)) {
+            fs.mkdirSync(devisDir);
+        }
+        try {
+            await PDFGenerator.createDevis(devisData, path.join(devisDir, `${devis.id}.pdf`));
+            return path.join(devisDir, `devis-${devis.id}.pdf`);
+        } catch (pdfError) {
+            throw new AppError('Error on generating devis PDF', 500);
+        }
+    } catch (error) {
+        throw new AppError('Unexpected error on generating devis PDF', 500);
+    }
+};
+
+// Envoi du mail avec le PDF en pièce jointe
+const sendDevisByEmail = async (userId, devisId) => {
+    try {
+        const devis = await devisRepository.getDevis(userId, devisId);
+        if (!devis) {
+            throw new AppError('Devis not found', 404);
+        }
+
+        // Population des données client, prestations et users
+        await devis.populate('client');
+        await devis.populate('prestations.prestation');
+        await devis.populate('user');
+
+        // Vérification de l'existence du client
+        if (!devis.client) {
+            throw new AppError('Client not found', 404);
+        }
+
+        // Vérifier si PDF existe, sinon le générer
+        const pdfPath = path.resolve(`./devis/devis-${devis.id}.pdf`);
+        if (!fs.existsSync(pdfPath)) {
+            await generateDevisPDF(userId, devisId);
+        }
+
+        // Préparation des données pour l'email et envoi
+        await mailSender.sendMail({
+            to: devis.client.email,
+            subject: 'Votre devis',
+            templateName: 'devis',
+            templateVars: {
+                clientName: devis.client.name
+            },
+            attachmentName: `devis-${devis.id}`,
+            attachmentFolder: 'devis'
+        });
+    } catch (error) {
+        throw new AppError('Unexpected error on sending devis email', 500);
+    }
+};
+
 module.exports = {
     createDevis,
     getDevisById,
-    getAllDevis
+    getAllDevis,
+    sendDevisByEmail,
+    generateDevisPDF
 };

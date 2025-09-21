@@ -52,16 +52,11 @@ const sendReminders = async () => {
             await sendMail({
                 to: invoice.client.email,
                 subject: 'Rappel : Votre facture',
-                text: 'Bonjour, ceci est un rappel concernant votre facture.',
-                html: `
-                    <div style="font-family: Arial, sans-serif; color: #222;">
-                        <h2 style="color: #ffc107;">Rappel : Votre facture</h2>
-                        <p>Bonjour,</p>
-                        <p>Ceci est un rappel concernant votre facture en pièce jointe.</p>
-                        <p style="margin-top:20px;">Merci de procéder au paiement dès que possible.<br>L'équipe Styven Manaja Digital</p>
-                    </div>
-                `,
-                attachmentName: invoice._id.toString(),
+                templateName: 'reminder',
+                templateVars: {
+                    clientName: invoice.client.name
+                },
+                attachmentName: `invoice-${invoice._id.toString()}`,
                 attachmentFolder: 'invoices'
             });
         } catch (error) {

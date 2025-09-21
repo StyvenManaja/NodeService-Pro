@@ -18,6 +18,10 @@ const { loadTemplate } = require('./template.loader');
  * Ajout du paramètre templateName et templateVars pour centraliser les templates
  */
 const sendMail = async ({ to, subject, text, html, templateName, templateVars = {}, attachmentName, attachmentFolder, verificationCode, resetToken }) => {
+    if (!process.env.BREVO_USER || !process.env.BREVO_PASS || !process.env.PROD_EMAIL) {
+        throw new Error('Missing mail environment variables (BREVO_USER, BREVO_PASS, PROD_EMAIL)');
+    }
+
     const transporter = nodemailer.createTransport({
         host: 'smtp-relay.brevo.com',
         port: 587,
@@ -43,17 +47,17 @@ const sendMail = async ({ to, subject, text, html, templateName, templateVars = 
     }
 
     // Ajout pièce jointe si nécessaire
-    if (attachmentName && attachmentFolder) {
+    if (attachmentName) {
+        const looksLikePath = attachmentName.includes('/') || attachmentName.includes('\\');
+        const pathOrName = looksLikePath ? attachmentName : `./${attachmentFolder || ''}/${attachmentName}.pdf`.replace('//','/');
+        const fileNameOnly = looksLikePath ? attachmentName.split('/').pop() : `${attachmentName}.pdf`;
         mailOptions.attachments = [
             {
-                filename: `${attachmentName}.pdf`,
-                path: `./${attachmentFolder}/${attachmentName}.pdf`
+                filename: fileNameOnly,
+                path: pathOrName
             }
         ];
     }
-
-    // Ajout du code de vérification ou du lien de reset dans les variables du template si besoin
-    // (déjà géré par templateVars lors de l'appel)
 
     await transporter.sendMail(mailOptions);
 };

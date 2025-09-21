@@ -48,8 +48,40 @@ const getAllDevis = async (req, res, next) => {
     }
 };
 
+// Générer un PDF pour un devis
+const generateDevisPDF = async (req, res, next) => {
+    const { devisId } = req.params;
+    const userId = req.userId;
+    try {
+        const pdf = await devisService.generateDevisPDF(userId, devisId);
+        res.status(201).json({
+            status: 'success',
+            data: { pdfUrl: pdf }
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Envoyer un devis par email
+const sendDevisByEmail = async (req, res, next) => {
+    const { devisId } = req.params;
+    const userId = req.userId;
+    try {
+        await devisService.sendDevisByEmail(userId, devisId);
+        res.status(200).json({
+            status: 'success',
+            message: 'Devis sent by email'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createDevis,
     getDevisById,
-    getAllDevis
+    getAllDevis,
+    sendDevisByEmail,
+    generateDevisPDF
 };
