@@ -66,14 +66,12 @@ const generateInvoicePDF = async (req, res, next) => {
     const userId = req.userId;
     try {
         const pdf = await invoiceService.generateInvoicePDF(userId, invoiceId);
-        res.status(201).json({
-            status: 'success',
-            data: { pdfUrl: pdf }
-        });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.status(201).send(pdf);
     } catch (error) {
         next(error);
     }
-}
+};
 
 // Envoyer une facture par email
 const sendInvoiceByEmail = async (req, res, next) => {

@@ -125,17 +125,10 @@ const generateInvoicePDF = async (userId, invoiceId) => {
             number: String(invoice._id).slice(-8)
         };
 
-        // Vérifie que le dossier factures existe
-        const invoicesDir = path.resolve('./invoices');
-        if (!fs.existsSync(invoicesDir)) {
-            fs.mkdirSync(invoicesDir);
-        }
-
         // Génération du PDF
         try {
-            const pdfFileName = `invoice-${invoice._id}`;
-            await PDFGenerator.createInvoice(invoiceData, path.join(invoicesDir, `${pdfFileName}.pdf`));
-            return `${pdfFileName}.pdf`;
+            const pdfBuffer = await PDFGenerator.createInvoice(invoiceData);
+            return pdfBuffer;
         } catch (pdfError) {
             throw new AppError('Can not generate pdf', 500);
         }
@@ -161,11 +154,12 @@ const sendInvoiceByEmail = async (userId, invoiceId) => {
             ]
         });
 
-        // Vérifier si le pdf existe déjà, sinon le générer
-    const pdfFileName = `invoice-${invoice._id}`;
-    const pdfFilePath = path.join('./invoices', `${pdfFileName}.pdf`);
-        if (!fs.existsSync(pdfFilePath)) {
-            await generateInvoicePDF(userId, invoiceId);
+        // Génération du PDF
+        let pdfBuffer;
+        try {
+            pdfBuffer = await generateInvoicePDF(userId, invoiceId);
+        } catch (pdfError) {
+            throw new AppError('Error on generating invoice PDF', 500);
         }
 
         // Préparation des données pour l'email et envoi
@@ -176,8 +170,13 @@ const sendInvoiceByEmail = async (userId, invoiceId) => {
             templateVars: {
                 clientName: invoice.devis.client.name
             },
-            attachmentName: pdfFileName,
-            attachmentFolder: 'invoices'
+            attachments: [
+                {
+                    filename: `invoice-${invoice._id}.pdf`,
+                    content: pdfBuffer,
+                    contentType: 'application/pdf'
+                }
+            ]
         });
         return invoice;
     } catch(error) {

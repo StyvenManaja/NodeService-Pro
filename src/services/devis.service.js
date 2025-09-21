@@ -133,14 +133,9 @@ const generateDevisPDF = async (userId, devisId) => {
             date: devis.createdAt
         };
 
-        // Vérifie que le dossier devis existe
-        const devisDir = path.resolve('./devis');
-        if (!fs.existsSync(devisDir)) {
-            fs.mkdirSync(devisDir);
-        }
         try {
-            await PDFGenerator.createDevis(devisData, path.join(devisDir, `${devis.id}.pdf`));
-            return path.join(devisDir, `devis-${devis.id}.pdf`);
+            const pdfBuffer = await PDFGenerator.createDevis(devisData);
+            return pdfBuffer;
         } catch (pdfError) {
             throw new AppError('Error on generating devis PDF', 500);
         }
@@ -167,10 +162,12 @@ const sendDevisByEmail = async (userId, devisId) => {
             throw new AppError('Client not found', 404);
         }
 
-        // Vérifier si PDF existe, sinon le générer
-        const pdfPath = path.resolve(`./devis/devis-${devis.id}.pdf`);
-        if (!fs.existsSync(pdfPath)) {
-            await generateDevisPDF(userId, devisId);
+        // Génération du PDF
+        let pdfBuffer;
+        try {
+            pdfBuffer = await generateDevisPDF(userId, devisId);
+        } catch (pdfError) {
+            throw new AppError('Error on generating devis PDF', 500);
         }
 
         // Préparation des données pour l'email et envoi
@@ -181,8 +178,13 @@ const sendDevisByEmail = async (userId, devisId) => {
             templateVars: {
                 clientName: devis.client.name
             },
-            attachmentName: `devis-${devis.id}`,
-            attachmentFolder: 'devis'
+            attachments: [
+                {
+                    filename: `devis-${devis._id}.pdf`,
+                    content: pdfBuffer,
+                    contentType: 'application/pdf'
+                }
+            ]
         });
     } catch (error) {
         throw new AppError('Unexpected error on sending devis email', 500);

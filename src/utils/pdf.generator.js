@@ -31,33 +31,34 @@ function injectData(template, data) {
 }
 
 // Génère un PDF à partir d'un template HTML et des données
-async function generatePdfFromHtml(html, outputPath) {
+async function generatePdfFromHtml(html) {
     if (typeof html !== 'string') {
         html = String(html);
     }
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
-    await page.pdf({ path: outputPath, format: 'A4', printBackground: true });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
     await browser.close();
+    return pdfBuffer;
 }
 
 // Crée un devis PDF
-async function createDevis(devis, outputPath) {
+async function createDevis(devis) {
     const templatePath = path.resolve(__dirname, '../templates/devisPdf.html');
     let template = fs.readFileSync(templatePath, 'utf8');
     const html = injectData(template, devis);
-    await generatePdfFromHtml(html, outputPath);
-    return outputPath;
+    const pdfBuffer = await generatePdfFromHtml(html);
+    return pdfBuffer;
 }
 
 // Crée une facture PDF
-async function createInvoice(invoice, outputPath) {
+async function createInvoice(invoice) {
     const templatePath = path.resolve(__dirname, '../templates/invoicePdf.html');
     let template = fs.readFileSync(templatePath, 'utf8');
     const html = injectData(template, invoice);
-    await generatePdfFromHtml(html, outputPath);
-    return outputPath;
+    const pdfBuffer = await generatePdfFromHtml(html);
+    return pdfBuffer;
 }
 
 module.exports = {

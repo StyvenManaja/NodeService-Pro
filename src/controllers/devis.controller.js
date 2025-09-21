@@ -54,10 +54,8 @@ const generateDevisPDF = async (req, res, next) => {
     const userId = req.userId;
     try {
         const pdf = await devisService.generateDevisPDF(userId, devisId);
-        res.status(201).json({
-            status: 'success',
-            data: { pdfUrl: pdf }
-        });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.status(201).send(pdf);
     } catch (error) {
         next(error);
     }

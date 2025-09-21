@@ -17,7 +17,7 @@ const { loadTemplate } = require('./template.loader');
 /**
  * Ajout du paramètre templateName et templateVars pour centraliser les templates
  */
-const sendMail = async ({ to, subject, text, html, templateName, templateVars = {}, attachmentName, attachmentFolder, verificationCode, resetToken }) => {
+const sendMail = async ({ to, subject, text, html, templateName, templateVars = {}, attachments = [] }) => {
     if (!process.env.BREVO_USER || !process.env.BREVO_PASS || !process.env.PROD_EMAIL) {
         throw new Error('Missing mail environment variables (BREVO_USER, BREVO_PASS, PROD_EMAIL)');
     }
@@ -46,17 +46,20 @@ const sendMail = async ({ to, subject, text, html, templateName, templateVars = 
         mailOptions.text = text;
     }
 
-    // Ajout pièce jointe si nécessaire
-    if (attachmentName) {
+    // Ajout des pièces jointes (buffer ou path)
+    let attachmentsList = [];
+    if (Array.isArray(attachments) && attachments.length > 0) {
+        attachmentsList = attachments;
+    } else if (attachmentName) {
         const looksLikePath = attachmentName.includes('/') || attachmentName.includes('\\');
         const pathOrName = looksLikePath ? attachmentName : `./${attachmentFolder || ''}/${attachmentName}.pdf`.replace('//','/');
         const fileNameOnly = looksLikePath ? attachmentName.split('/').pop() : `${attachmentName}.pdf`;
-        mailOptions.attachments = [
-            {
-                filename: fileNameOnly,
-                path: pathOrName
-            }
-        ];
+        attachmentsList = [{ filename: fileNameOnly, path: pathOrName }];
+    }
+    if (attachmentsList.length > 0) {
+        mailOptions.attachments = attachmentsList;
+        // Debug log for attachments
+        console.log('[MAIL] attachments:', attachmentsList.map(a => ({ filename: a.filename, hasContent: !!a.content, path: a.path })));
     }
 
     await transporter.sendMail(mailOptions);
