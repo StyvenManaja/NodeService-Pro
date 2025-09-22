@@ -9,8 +9,8 @@ A professional Node.js REST API for managing clients, quotes, invoices, and serv
 - **Quote & Invoice Management**: Create, list, update, PDF generation
 - **Service Management**: CRUD for prestations
 - **Secure Authentication**: JWT-based, password hashing, validation
-- **Email Notifications**: Centralized HTML templates for all emails (quote, invoice, reminder, verification, reset, payment)
-- **PDF Generation**: Professional PDF documents for quotes and invoices
+- **Email Notifications**: All emails (quotes, invoices, reminders, verification, reset, payment) use centralized HTML templates in `/src/templates/` and support dynamic variable injection. Attachments (PDFs) are sent as buffers for reliability.
+- **PDF Generation**: Professional PDF documents for quotes and invoices, generated from HTML/CSS templates using Puppeteer (not PDFKit). All data is injected dynamically for modern, branded output.
 - **Reminders**: Automated invoice reminders with cron jobs
 - **Validation**: Joi-based request validation
 - **Extensible Architecture**: MVC, services, repositories, middlewares
@@ -30,7 +30,7 @@ A professional Node.js REST API for managing clients, quotes, invoices, and serv
 - JWT, bcryptjs
 - Joi
 - Nodemailer
-- PDFKit
+- Puppeteer (HTML-to-PDF)
 
 ## Setup
 
@@ -58,6 +58,28 @@ A professional Node.js REST API for managing clients, quotes, invoices, and serv
    ```bash
    npm start
    ```
+
+## Customizing Email & PDF Templates
+
+- All email and PDF templates are in `/src/templates/` (e.g. `devis.html`, `invoice.html`, `devisPdf.html`, `invoicePdf.html`, etc.).
+- Use `{{variable}}` placeholders in templates; variables are injected from the service layer.
+- To add new variables, update the relevant service (e.g. `devis.service.js`) to pass them in `templateVars`.
+- For PDF templates, all data is injected before rendering with Puppeteer.
+
+## Attachments & Email Sending
+
+- PDF attachments are sent as buffers (not file paths) for reliability and performance.
+- The mail sender (`src/utils/mail.sender.js`) supports both buffer and path-based attachments, but buffer is preferred.
+- All mail sending requires the following environment variables:
+  - `BREVO_USER`, `BREVO_PASS`, `PROD_EMAIL`
+
+## Troubleshooting
+
+- If emails with PDF attachments fail:
+  - Ensure the PDF buffer is generated and passed to the mail sender.
+  - Check the `[MAIL] attachments:` log in the console for attachment details.
+  - Make sure all required environment variables are set.
+- If a template variable is blank in an email or PDF, check that the service passes it in `templateVars` or the PDF data object.
 
 ## API Overview
 
